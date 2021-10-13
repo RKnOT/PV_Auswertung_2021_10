@@ -12,6 +12,7 @@ import datetime
 
 #-----------Debug Einstellungen-------
 debug = True
+debug_write_file = False
 # files kopieren
 file_copy_flag = True # True > files werden kopiert // False > files werden nicht kopiert
 #-------------------------------------
@@ -41,6 +42,15 @@ else: # Window environment
 
     loc = ut.Get_CSV_File_Names()
     CSV_local = loc.fileNamesSizeTublesArray
+    if debug_write_file:
+        with open('CSV_remote.txt', 'w') as f:
+            for item in CSV_remote:
+                f.write(item[0]+ ' | ' + str(item[1]))
+                f.write('\n')
+        with open('CSV_local.txt', 'w') as f:
+            for item in CSV_local:
+                f.write(item[0]+ ' | ' + str(item[1]))
+                f.write('\n')
 
 stop = time.perf_counter()
 
