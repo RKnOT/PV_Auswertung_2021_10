@@ -77,8 +77,8 @@ class NetworkData():
          data['Local'].append({
                 'dir_name_local' : 'PVDataLog/' + str(datetime.today().year),
                 })
-         if platform_flag == True: # platform windows
-             data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
+         #if platform_flag == True: # platform windows
+         #    data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
          return data
    #---------read write json-------------         
    def writeJsonFile(self, ini):

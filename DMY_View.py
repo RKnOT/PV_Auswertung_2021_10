@@ -231,10 +231,11 @@ class PlotDiagram():
 
 if __name__ == '__main__':
         c = check_CSV(DaySelected, MonthSelected, YearSelected)
-        _ = os.system('clear')
+        #_ = os.system('clear')
    
         if c.csv.day_record_flag:
            DayView(c.csv)
+          
            pass
         if c.csv.month_record_flag:
            MonthView(c.csv)
