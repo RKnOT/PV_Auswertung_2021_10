@@ -137,21 +137,25 @@ class CompareSameFilesRemoteAndLocal():
 class GetNWCSV_File_Names():
     
     def __init__(self):
+        self.NW_flag = False
         str_year = str(datetime.now().year)
         nd = NetworkData([], True)
         self.workingDir = nd.share +'\\' + nd.dir_name
         self.fileNamesSizeTublesArray = []
-        register_session(nd.server, username = nd.user, password = nd.pw)
-        for entry in scandir(self.workingDir):
-            s = entry.stat(entry.name)
-            sp = entry.name.split('_')
-            ft =False
-            if sp[0] == str_year: ft=True
-            #print(sp[0])
-            if entry.name.endswith('.CSV') & ft:
-               self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
-        self.fileNamesSizeTublesArray.sort(reverse = False)            
-            
+        try:
+            register_session(nd.server, username = nd.user, password = nd.pw)
+            for entry in scandir(self.workingDir):
+                s = entry.stat(entry.name)
+                sp = entry.name.split('_')
+                ft =False
+                if sp[0] == str_year: ft=True
+                #print(sp[0])
+                if entry.name.endswith('.CSV') & ft:
+                   self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
+            self.fileNamesSizeTublesArray.sort(reverse = False)
+            self.NW_flag = True
+        except:
+            pass
                 
 #-------------------------
 class CopyNWfilesToLocal():
