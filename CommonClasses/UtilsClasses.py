@@ -164,7 +164,7 @@ class CopyNWfilesToLocal():
         self.count = 0
         self.workingDir = nd.share +'\\' + nd.dir_name
         path_parent = os.getcwd()+'/'
-        print(path_parent)
+        #print(path_parent)
         if copy_Files == False:
             return 
 
@@ -219,7 +219,7 @@ class Get_CSV_File_Names():
     def get_from_dir_file_names(self, dir,ext):
         try:
             cwd = os.getcwd()
-            print(dir)
+            #print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
             self.fl  = list(filter(lambda x: x if ext in x else [], os.listdir()))

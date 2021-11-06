@@ -21,9 +21,10 @@ from helper_classes import check_CSV
 # git test
 
 #-------Eingabe-----------
-DaySelected = 27
+DaySelected = 5
 
-MonthSelected = 10
+
+MonthSelected = 11
 YearSelected = 2021
 #------
 TeleSelected = 0
