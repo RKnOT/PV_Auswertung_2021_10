@@ -19,7 +19,7 @@ def doit(stop_event, arg, c):
         print(str(c), '\r', end='')
         c +=1
     
-    print("%s thread angehalten" % arg)
+    print("%s thread beendet" % arg)
 
 #----------
 
@@ -44,7 +44,7 @@ if platform.system() != 'Windows':
     
     pill2kill = threading.Event()
     count = 0
-    t = threading.Thread(target=doit, args=(pill2kill, "task1", count))
+    t = threading.Thread(target=doit, args=(pill2kill, "Read local and remote files", count))
     # start t-event
     t.start()
     
