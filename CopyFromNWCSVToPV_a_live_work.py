@@ -19,7 +19,7 @@ def doit(stop_event, arg, c):
         print(str(c), '\r', end='')
         c +=1
     
-    print("%s thread beendet" % arg)
+    print("\n%s thread beendet" % arg)
 
 #----------
 
