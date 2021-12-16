@@ -11,13 +11,17 @@ import datetime
 import threading
 
 #------ thread task
-def doit(stop_event, arg, c):
+def doit(stop_event, arg, c, max_count = 25):
     
     print ("%s thread gestarted" % arg)
     while not stop_event.wait(1):
         
         print(str(c), '\r', end='')
         c +=1
+        if c > max_count:
+           print("\n%s max Zählerstand erreicht" % arg)
+           break
+          
     
     print("\n%s thread beendet" % arg)
 
@@ -43,11 +47,14 @@ start = time.perf_counter()
 if platform.system() != 'Windows':
     
     pill2kill = threading.Event()
+    
     count = 0
+    
+    
     t = threading.Thread(target=doit, args=(pill2kill, "Read local and remote files", count))
+    
     # start t-event
     t.start()
-    
     
     nw = ut.GetNWCSV_File_Names
     with cf.ThreadPoolExecutor() as executor:
@@ -57,12 +64,12 @@ if platform.system() != 'Windows':
         else:    
             with cf.ThreadPoolExecutor() as executor:
                 loc = executor.submit(get_r_l, ut.Get_CSV_File_Names).result()
-            CSV_local = loc.fileNamesSizeTublesArray
-            CSV_remote = rem.fileNamesSizeTublesArray
+        CSV_local = loc.fileNamesSizeTublesArray
+        CSV_remote = rem.fileNamesSizeTublesArray
     
     # stop event
     pill2kill.set()
-    t.join()
+    #t.join()
     
 else: # Window environment
     nw = ut.Get_Write_Windows_Network_Files()
