@@ -1,22 +1,20 @@
 
 #!/usr/bin/env python3
 import os
-import platform
-import shutil
+print(os.getcwd())
 import json
 
 import csv
 import re
-import datetime
+#import datetime
 import calendar
 
 from datetime import date, time, datetime
+
 from scandir import scandir, walk
-platform_flag = True # True windows // false IOS
-if platform.system() != 'Windows':
-    platform_flag = False
-    from scandir import scandir, walk
-    from smbclient import (listdir, open_file, mkdir, register_session, rmdir, scandir)
+from smb.SMBConnection import SMBConnection
+
+from smbclient import (listdir, open_file, mkdir, register_session, rmdir, scandir)
 
 #------- class Network Data start------
 jsonDat = 'NetworkParameter.json'
@@ -61,7 +59,6 @@ class NetworkData():
          
    #--------Server Daten-----------------
    def iniData(self):
-         dir = 'PVDataLog/' + str(datetime.now().year)
          data = {}
          data['Server'] =[]
          data['Server'].append({
@@ -73,12 +70,9 @@ class NetworkData():
                 'dir_name' : 'PVDataLog',
                 })
          data['Local'] =[]
-         
          data['Local'].append({
-                'dir_name_local' : 'PVDataLog/' + str(datetime.today().year),
+                'dir_name_local' : 'PVDataLog',
                 })
-         if platform_flag == True: # platform windows
-             data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
          return data
    #---------read write json-------------         
    def writeJsonFile(self, ini):
@@ -90,20 +84,6 @@ class NetworkData():
                 self.data = json.load(json_file)
        else: self.data =[]
 #------- class Network Data end------
-
-#------- class Network get files under windows environment ------
-class Get_Write_Windows_Network_Files():
-    def __init__(self, ext = '.CSV'):
-        nd = NetworkData([], True)
-        self.PVDir = nd.share + '/' + nd.dir_name
-        Dir_names = os.listdir(self.PVDir)
-        current_year = str(datetime.now().year)
-        self.fl = list(filter(lambda x : (ext in x and current_year in x), Dir_names))
-        self.fileNamesSizeTublesArray  = list(map(lambda x: (x, os.path.getsize(self.PVDir + '/'+x)), self.fl))
-        #print(len(self.fileNamesSizeTublesArray ))
-        #print(len(self.fl))
-
-       
 
 #--------------------------
 class CompareSameFilesRemoteAndLocal():
@@ -137,68 +117,40 @@ class CompareSameFilesRemoteAndLocal():
 class GetNWCSV_File_Names():
     
     def __init__(self):
-        str_year = str(datetime.now().year)
         nd = NetworkData([], True)
         self.workingDir = nd.share +'\\' + nd.dir_name
         self.fileNamesSizeTublesArray = []
-        
-        print('####---------#######')
         register_session(nd.server, username = nd.user, password = nd.pw)
         for entry in scandir(self.workingDir):
             s = entry.stat(entry.name)
-            sp = entry.name.split('_')
-            ft =False
-            if sp[0] == str_year: ft=True
-            #print(sp[0])
-            if entry.name.endswith('.CSV') & ft:
+            if entry.name.endswith('.CSV'):
                self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
         self.fileNamesSizeTublesArray.sort(reverse = False)            
             
                 
 #-------------------------
 class CopyNWfilesToLocal():
-    def __init__(self, fnamesTB, copy_Files = True):
+    def __init__(self, fnamesTB):
         nd = NetworkData([], True)
-        self.count = 0
         self.workingDir = nd.share +'\\' + nd.dir_name
         path_parent = os.getcwd()+'/'
-        print(path_parent)
-        if copy_Files == False:
-            return 
-
-        #-------------- check year dir exists locally------
-        
-       
-        
-        
-        dest = path_parent + nd.dir_name_local
-
-        # debug
-        #dest = 'PVDataLog\\2022'
-        #------
-        if os.path.isdir(dest) == False:
-           os.mkdir(dest)
-        #---------------------------------------------------
+        #print(path_parent)
+            
         for i, j, in enumerate(fnamesTB):
             source = self.workingDir + '\\' + j[0]
             #print(source)
             dest = path_parent + nd.dir_name_local + '/' + j[0]
             #print(dest)
-            if platform_flag == False:
-                register_session(nd.server, username= nd.user, password = nd.pw)
-                with open_file(source, username = nd.user, password = nd.pw, mode ='r') as fd:
-                    #shutil.copyfile(source, dest)
-                    
-                    file_contents = fd.read()
-                    #print(len(file_contents))
-                    destFile = open(dest, 'w')
-                    destFile.write(file_contents)
-                    destFile.close()
-                    
-            else: #Windows
-               shutil.copyfile(source, dest)
-            print('file: '+ j[0] + ' copied')
-        
+            register_session(nd.server, username= nd.user, password = nd.pw)
+            with open_file(source, username = nd.user, password = nd.pw, mode ='r') as fd:
+                file_contents = fd.read()
+                #print(len(file_contents))
+                destFile = open(dest, 'w')
+                destFile.write(file_contents)
+                destFile.close()
+                print('file: '+ j[0] + ' copied')
+            
+
 
 #-------------------------
 
@@ -212,12 +164,14 @@ class Get_CSV_File_Names():
         if dir == '':
             nd = NetworkData([], True)
             self.PVDateien = nd.dir_name_local
+        
+        
+        
         self.get_from_dir_file_names(self.PVDateien, ext)
             
     def get_from_dir_file_names(self, dir,ext):
         try:
             cwd = os.getcwd()
-            print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
             self.fl  = list(filter(lambda x: x if ext in x else [], os.listdir()))
@@ -231,6 +185,60 @@ class Get_CSV_File_Names():
         finally:
             os.chdir(cwd)
             self.cwd_dir = os.getcwd()
+
+
+    
+    
+    
+    '''    
+    def __init__(self):
+        nd = NetworkData([], True)
+        self.PVDateien = nd.dir_name_local
+        #self.PVDateien = '/PVAuswertung/PVDataLog'
+        self.fileNamesSizeTublesArray = []
+        self.fl = []
+        self.pathCSV =''
+        self.CWD = os.getcwd()
+        self.stat = False
+        self.CSV_Dir = ''
+        self.CSV_Dir_BL = ''
+        self.getAllCSVfileNames()
+        
+    def getAllCSVfileNames(self):
+        
+        self.stat, self.pathCSV = self.setPath(self.PVDateien)
+        #print('---')
+        #print(self.stat)
+        #print('----')
+        if self.stat == True:
+            self.CSV_Dir = os.getcwd()
+            self.CSV_Dir_BL = self.CSV_Dir + '/'
+            # get all csv files in logdata dir      
+            files = [f for f in os.listdir('.') if os.path.isfile(f)]
+            #print(files)
+            for f1 in files:
+               if f1.endswith('.CSV'):
+                    self.fl.append(f1)
+                    self.fileNamesSizeTublesArray.append((f1, os.stat(f1).st_size))
+            self.fileNamesSizeTublesArray.sort(reverse = False)            
+            #print(self.fl)    
+        os.chdir(self.CWD)
+        
+        
+        
+    def setPath(self, p):
+        path_parent = os.path.dirname(os.getcwd())
+        #print(path_parent)
+        #print(path_parent +p)
+        try:
+            os.chdir(path_parent + p)
+            #print(os.getcwd())
+            return True, path_parent +  p + '/'
+              
+        except:
+            return False, ''
+            
+    '''
 #---------------------------
 
 

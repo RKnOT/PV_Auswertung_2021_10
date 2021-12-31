@@ -18,10 +18,12 @@ from CommonClasses.DataModel import TagUtil as TagRecord
 from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
-#-------Eingabe-----------
-DaySelected = 13
+# git test
 
-MonthSelected = 10
+#-------Eingabe-----------
+DaySelected = 31
+
+MonthSelected = 12
 YearSelected = 2021
 #------
 TeleSelected = 0
@@ -229,10 +231,11 @@ class PlotDiagram():
 
 if __name__ == '__main__':
         c = check_CSV(DaySelected, MonthSelected, YearSelected)
-        _ = os.system('clear')
+        #_ = os.system('clear')
    
         if c.csv.day_record_flag:
            DayView(c.csv)
+          
            pass
         if c.csv.month_record_flag:
            MonthView(c.csv)

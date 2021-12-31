@@ -77,8 +77,8 @@ class NetworkData():
          data['Local'].append({
                 'dir_name_local' : 'PVDataLog/' + str(datetime.today().year),
                 })
-         if platform_flag == True: # platform windows
-             data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
+         #if platform_flag == True: # platform windows
+         #    data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
          return data
    #---------read write json-------------         
    def writeJsonFile(self, ini):
@@ -137,23 +137,25 @@ class CompareSameFilesRemoteAndLocal():
 class GetNWCSV_File_Names():
     
     def __init__(self):
+        self.NW_flag = False
         str_year = str(datetime.now().year)
         nd = NetworkData([], True)
         self.workingDir = nd.share +'\\' + nd.dir_name
         self.fileNamesSizeTublesArray = []
-        
-        print('####---------#######')
-        register_session(nd.server, username = nd.user, password = nd.pw)
-        for entry in scandir(self.workingDir):
-            s = entry.stat(entry.name)
-            sp = entry.name.split('_')
-            ft =False
-            if sp[0] == str_year: ft=True
-            #print(sp[0])
-            if entry.name.endswith('.CSV') & ft:
-               self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
-        self.fileNamesSizeTublesArray.sort(reverse = False)            
-            
+        try:
+            register_session(nd.server, username = nd.user, password = nd.pw)
+            for entry in scandir(self.workingDir):
+                s = entry.stat(entry.name)
+                sp = entry.name.split('_')
+                ft =False
+                if sp[0] == str_year: ft=True
+                #print(sp[0])
+                if entry.name.endswith('.CSV') & ft:
+                   self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
+            self.fileNamesSizeTublesArray.sort(reverse = False)
+            self.NW_flag = True
+        except:
+            pass
                 
 #-------------------------
 class CopyNWfilesToLocal():
@@ -162,7 +164,7 @@ class CopyNWfilesToLocal():
         self.count = 0
         self.workingDir = nd.share +'\\' + nd.dir_name
         path_parent = os.getcwd()+'/'
-        print(path_parent)
+        #print(path_parent)
         if copy_Files == False:
             return 
 
@@ -217,7 +219,7 @@ class Get_CSV_File_Names():
     def get_from_dir_file_names(self, dir,ext):
         try:
             cwd = os.getcwd()
-            print(dir)
+            #print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
             self.fl  = list(filter(lambda x: x if ext in x else [], os.listdir()))
