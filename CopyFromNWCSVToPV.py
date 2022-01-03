@@ -11,7 +11,7 @@ import datetime
 
 
 #-----------Debug Einstellungen-------
-debug = True
+debug = False
 # files kopieren
 file_copy_flag = True # True > files werden kopiert // False > files werden nicht kopiert
 #-------------------------------------

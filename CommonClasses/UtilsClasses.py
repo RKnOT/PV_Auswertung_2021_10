@@ -91,7 +91,8 @@ class NetworkData():
        else: self.data =[]
 #------- class Network Data end------
 
-#------- class Network get files under windows environment ------
+#------- class Network get files under windows environment
+
 class Get_Write_Windows_Network_Files():
     def __init__(self, ext = '.CSV'):
         nd = NetworkData([], True)
@@ -133,6 +134,23 @@ class CompareSameFilesRemoteAndLocal():
                 mFs = Master[rindex][1]
                 if sFs != mFs:
                     self.fileToUpdate.append((item, fs, rindex, 'diff file size'))
+                
+#-------------------------
+
+class GetNW():
+    
+    def __init__(self):
+        str_year = str(datetime.now().year)
+        nd = NetworkData([], True)
+        self.workingDir = nd.share +'\\' + nd.dir_name
+        try:
+            s = register_session(nd.server, username = nd.user, password = nd.pw)
+            print('-- NW verfügbar --')
+        except:
+            #print(dir(s))
+            print('-- NW nicht verfügbar --')
+            #print(s.connection)
+        
 #----------------------------        
 class GetNWCSV_File_Names():
     
@@ -141,18 +159,20 @@ class GetNWCSV_File_Names():
         nd = NetworkData([], True)
         self.workingDir = nd.share +'\\' + nd.dir_name
         self.fileNamesSizeTublesArray = []
-        
-        print('####---------#######')
+        #print('####---------#######')
         register_session(nd.server, username = nd.user, password = nd.pw)
         for entry in scandir(self.workingDir):
             s = entry.stat(entry.name)
             sp = entry.name.split('_')
-            ft =False
+            ft = False
             if sp[0] == str_year: ft=True
-            #print(sp[0])
             if entry.name.endswith('.CSV') & ft:
-               self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
-        self.fileNamesSizeTublesArray.sort(reverse = False)            
+                self.fileNamesSizeTublesArray.append((entry.name, s.st_size))
+
+               
+        self.fileNamesSizeTublesArray.sort(reverse = False)
+        #print(len(self.fileNamesSizeTublesArray))
+        #print('----    ----')            
             
                 
 #-------------------------
@@ -160,25 +180,13 @@ class CopyNWfilesToLocal():
     def __init__(self, fnamesTB, copy_Files = True):
         nd = NetworkData([], True)
         self.count = 0
+        self.copied_files =[]
         self.workingDir = nd.share +'\\' + nd.dir_name
         path_parent = os.getcwd()+'/'
-        print(path_parent)
+        #print(path_parent)
         if copy_Files == False:
             return 
 
-        #-------------- check year dir exists locally------
-        
-       
-        
-        
-        dest = path_parent + nd.dir_name_local
-
-        # debug
-        #dest = 'PVDataLog\\2022'
-        #------
-        if os.path.isdir(dest) == False:
-           os.mkdir(dest)
-        #---------------------------------------------------
         for i, j, in enumerate(fnamesTB):
             source = self.workingDir + '\\' + j[0]
             #print(source)
@@ -194,10 +202,11 @@ class CopyNWfilesToLocal():
                     destFile = open(dest, 'w')
                     destFile.write(file_contents)
                     destFile.close()
+                    self.count +=1
                     
             else: #Windows
                shutil.copyfile(source, dest)
-            print('file: '+ j[0] + ' copied')
+            self.copied_files.append('file: '+ j[0] + ' copied')
         
 
 #-------------------------
@@ -216,8 +225,18 @@ class Get_CSV_File_Names():
             
     def get_from_dir_file_names(self, dir,ext):
         try:
+            #-------------- check year dir exists locally------
+        
+       
+            nwd = NetworkData()
+            #des = nwd.data['Local'][0]['dir_name_local']
+            dest = os.getcwd() + '/' + nwd.data['Local'][0]['dir_name_local']
+            if os.path.isdir(dest) == False:
+               os.mkdir(dest)
+        #---------------------------------------------------
+        
             cwd = os.getcwd()
-            print(dir)
+            #print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
             self.fl  = list(filter(lambda x: x if ext in x else [], os.listdir()))

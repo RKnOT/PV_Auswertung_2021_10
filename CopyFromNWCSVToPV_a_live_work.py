@@ -41,7 +41,7 @@ def get_r_l(func):
     return wert
    
 print('remote und lokale Files lesen')
-print('-----------')
+print('')
 
 start = time.perf_counter()
 if platform.system() != 'Windows':
@@ -55,15 +55,18 @@ if platform.system() != 'Windows':
     
     # start t-event
     t.start()
-    
-    nw = ut.GetNWCSV_File_Names
     with cf.ThreadPoolExecutor() as executor:
-        rem = executor.submit(get_r_l, nw).result()
-        if not rem.NW_flag: # kein Netzwerk vorhanden
-            print('\nNetzerk nicht verfügbar\n')
-        else:    
-            with cf.ThreadPoolExecutor() as executor:
+        try:
+            rem = executor.submit(get_r_l, ut.GetNWCSV_File_Names).result()
+            #print('\nNetzerk nicht verfügbar\n')
+        
+        except IndexError: 
+            print("Error: please provide a name and a repeat count to the script.")
+            sys.exit(1)
+            
+        with cf.ThreadPoolExecutor() as executor:
                 loc = executor.submit(get_r_l, ut.Get_CSV_File_Names).result()
+        
         CSV_local = loc.fileNamesSizeTublesArray
         CSV_remote = rem.fileNamesSizeTublesArray
     
@@ -89,28 +92,28 @@ else: # Window environment
 
 stop = time.perf_counter()
 
-
+'''
 if rem.NW_flag:
     print('remote und lokale Files gelesen')
     print('-----------')
+'''
+
+print(f'Time reqired to get NW- and Local-File-Name(s) in {round(stop-start,2)} second(s)')
 
 
-    print(f'Time reqired to get NW- and Local-File-Name(s) in {round(stop-start,2)} second(s)')
-
-
-    if debug:
+if debug:
         print('---remote----')
-        print('Anzahl der Network Files: ' + str(len(CSV_remote)))
+        print('Anzahl der Network Files: ' + str(len(CSV_remote)-1))
         if CSV_remote !=[]: 
             print(CSV_remote[-1])
             print('-------')
             print('-----local-----')
-            print('Anzahl der Local Files: ' + str(len(CSV_local)))
+            print('Anzahl der Local Files: ' + str(len(CSV_local)-1))
         if CSV_local !=[]: 
             print(CSV_local[-1])
             print('-------')
 
-    if file_copy_flag:
+if file_copy_flag:
         print('Files von remote nach local kopieren')
         print('------------')
     
@@ -124,8 +127,16 @@ if rem.NW_flag:
         stop = time.perf_counter()
         print(str(copyFile.count) + ' Files kopiert')
         print('--------------')
+        #print(copyFile.copied_files)
+        if len(copyFile.copied_files) > 0:
+            for f_names in copyFile.copied_files:
+                print(f_names)
+            print('--------------')
+        
+        
+        
         print(f'Time reqired to copy file(s) from NW to Local in {round(stop-start,2)} second(s)')
-    else: 
+else: 
             print('keine files kopiert')
 
 
