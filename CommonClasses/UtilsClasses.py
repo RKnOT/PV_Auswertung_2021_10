@@ -115,6 +115,7 @@ class CompareSameFilesRemoteAndLocal():
         # defining a function to find index in a list using lambda
         get_indexes = lambda x, searchable: [i for (y, i) in zip(searchable, range(len(searchable))) if x == y]
         #----end lamda fumctiom----
+        
         master_name_List =[]
         slave_name_List =[]
         
@@ -134,22 +135,24 @@ class CompareSameFilesRemoteAndLocal():
                 mFs = Master[rindex][1]
                 if sFs != mFs:
                     self.fileToUpdate.append((item, fs, rindex, 'diff file size'))
+        #print(self.fileToUpdate)
                 
 #-------------------------
 
 class GetNW():
     
     def __init__(self):
-        str_year = str(datetime.now().year)
+        
+        self.status_NW_flag = False
         nd = NetworkData([], True)
-        self.workingDir = nd.share +'\\' + nd.dir_name
+        self.NW_data = nd.data['Server'][0]
+        
         try:
             s = register_session(nd.server, username = nd.user, password = nd.pw)
-            print('-- NW verfügbar --')
+            self.status_NW_flag = True
         except:
-            #print(dir(s))
-            print('-- NW nicht verfügbar --')
-            #print(s.connection)
+            pass
+            
         
 #----------------------------        
 class GetNWCSV_File_Names():

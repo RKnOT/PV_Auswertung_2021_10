@@ -19,7 +19,7 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 3
+DaySelected = 6
 
 MonthSelected = 1
 YearSelected = 2022
@@ -58,6 +58,7 @@ class YearView():
     def yv(self, csv):
         dm = TagRecord()
         A, tpy = dm.getYearValues(csv.selected_Year_Files) 
+        
         plotLines = [
                      [0, 'b2', 'blue', 1, '-', '', 20]
                     ]
@@ -66,7 +67,7 @@ class YearView():
                                ['', ''],
                                ['Monatsertrag in kWh'],
                                [DF_M],
-                               ['Jahresertrag: '+ tpy+ ' kWh'],
+                               ['Jahresertrag: '+ tpy + ' kWh'],
                                 'Jahr ' + str(A[0][0].year)
                               ]   
         i1 = []
@@ -203,6 +204,11 @@ class PlotDiagram():
                 ax2.plot(x, y[item[0]], color = item[2], label = item[5], linewidth = item[3], linestyle= item[4])
             if(item[1][0]== 'b'):
                 r1 = ax1.bar(x, y[item[0]], color= item[2],linewidth=item[3], width= item[6], align='center')
+                # check if only one day or month is available 
+                delta_time = timedelta(days = 0)
+                if len(x) == 1:
+                    delta_time += timedelta(days = 1)
+                ax1.set_xlim(x[0], x[-1] + delta_time)
                 if(item[1][1]== '2'):
                    autolabel(r1)
         ax1.set_xlabel(a[5]) 
@@ -211,10 +217,9 @@ class PlotDiagram():
             lines, labels = ax1.get_legend_handles_labels()
             lines2, labels2 = ax2.get_legend_handles_labels()
             ax2.legend(lines + lines2, labels + labels2, loc=0)
-           
             ax2.set_ylabel(a[1][0], color =a[1][1])
-            
             ax2.xaxis.set_major_formatter(a[3][0])
+        
         ax1.grid(True)
         fig.autofmt_xdate()    
         if(ax2==0):
@@ -222,10 +227,31 @@ class PlotDiagram():
             ax1.xaxis.set_major_formatter(a[3][0]) 
             ax1.xaxis_date()
             #ax1.set_xlabel('hjhjh')
+            pass
+        
         plt.show()
-        plt.close()      
-      
+        plt.close()
+        
+        
+        
+        
+        '''
+        
+        import numpy as np
 
+        x = np.arange(0, 12)
+        y = np.arange(20, 32)
+        
+        month_xticks = ['Jan','Feb','März','April','Mai','Juni','Juli', 'Aug', 'Sep','Okt', 'Nov', 'Dez']
+        
+        
+        print(x)
+        print(y)
+        
+        plt.xticks(x, month_xticks)
+        plt.plot(x, y)
+        plt.show()      
+        '''
 
 if __name__ == '__main__':
         c = check_CSV(DaySelected, MonthSelected, YearSelected)

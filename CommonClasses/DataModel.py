@@ -390,7 +390,6 @@ class TagUtil():
         F3 = '{:06.3f}' 
         
         for indexes in il:
-            #print(indexes)
             if not not indexes:
                      #print(indexes[-1]) 
                      indexLastDayInMonth = indexes[-1]
@@ -410,8 +409,9 @@ class TagUtil():
         #print(A[2])
         #print(A[3])                                   
         #print(tpy)
+        #print(month_data_availabe_count)
         
-        tpystr = F3.format(tpy)
+        tpystr = F3.format(tpy) # years yield
         #print(tpystr)   
         return A, tpystr
 
