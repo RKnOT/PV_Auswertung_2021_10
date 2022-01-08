@@ -15,7 +15,7 @@ from scandir import scandir, walk
 platform_flag = True # True windows // false IOS
 if platform.system() != 'Windows':
     platform_flag = False
-    from scandir import scandir, walk
+    #from scandir import scandir, walk
     from smbclient import (listdir, open_file, mkdir, register_session, rmdir, scandir)
 
 #------- class Network Data start------
@@ -26,6 +26,7 @@ class NetworkData():
          debug = False
          if resetData:
              ini = self.iniData()
+             
              overWriteJson = True
              if debug: print('reset Data')  
          else: 
@@ -44,42 +45,51 @@ class NetworkData():
              if debug: print('jsonfile written')
          
          if debug:   print(ini)
-         fe = list(ini) 
-         a = ini[fe[0]]
-         b = ini[fe[1]]
-         if debug: print(a[0]['port'])
-         self.server = a[0]['server']
-         self.port = a[0]['port'] 
-         self.user = a[0]['user']
-         self.pw = a[0]['pw']
-         self.share = a[0]['share']
-         self.dir_name = a[0]['dir_name']
+          
+         a = ini['Server']
+         b = ini['Local']
+         if debug: print(a['port'])
+         self.server = a['server']
+         self.port = a['port'] 
+         self.user = a['user']
+         self.pw = a['pw']
          
-         self.dir_name_local = b[0]['dir_name_local']
+         self.dir_name_local = b['dir_name_local']
+         self.share = b['share']
+         self.dir_name = b['dir_name']
+         
          
          self.data = ini
          
    #--------Server Daten-----------------
+   
+   
    def iniData(self):
          dir = 'PVDataLog/' + str(datetime.now().year)
-         data = {}
-         data['Server'] =[]
-         data['Server'].append({
-                'server' : 'pi',
-                'port' : 445,
-                'user' : 'Administrator',
-                'pw' : '2292',
-                'share' : r'\\pi\d$',
-                'dir_name' : 'PVDataLog',
-                })
-         data['Local'] =[]
          
-         data['Local'].append({
-                'dir_name_local' : 'PVDataLog/' + str(datetime.today().year),
-                })
+         data = { 'Server' : 
+                     { 
+                      'server' : 'pi', 
+                      'port' : 445, 
+                      'user' : 'Administrator', 
+                      'pw' : '2292', 
+                     },
+                  'Local' :
+                     {
+                      'share' : r'\\pi\d$', 
+                      'dir_name' : 'PVDataLog',
+                      'dir_name_local' : 'PVDataLog/' + str(datetime.today().year)
+                      }
+                   }
+                   
+                   
          if platform_flag == True: # platform windows
-             data['Local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)
+             data['Local']['dir_name_local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)          
+                   
+         
          return data
+   
+   
    #---------read write json-------------         
    def writeJsonFile(self, ini):
          with open(jsonDat, 'w') as outfile:
@@ -145,8 +155,7 @@ class GetNW():
         
         self.status_NW_flag = False
         nd = NetworkData([], True)
-        self.NW_data = nd.data['Server'][0]
-        
+        self.NW_data = nd.data['Server']
         try:
             s = register_session(nd.server, username = nd.user, password = nd.pw)
             self.status_NW_flag = True
@@ -161,6 +170,9 @@ class GetNWCSV_File_Names():
         str_year = str(datetime.now().year)
         nd = NetworkData([], True)
         self.workingDir = nd.share +'\\' + nd.dir_name
+        
+        #print(self.workingDir)
+        #print(nd.dir_name_local)
         self.fileNamesSizeTublesArray = []
         #print('####---------#######')
         register_session(nd.server, username = nd.user, password = nd.pw)
@@ -232,8 +244,7 @@ class Get_CSV_File_Names():
         
        
             nwd = NetworkData()
-            #des = nwd.data['Local'][0]['dir_name_local']
-            dest = os.getcwd() + '/' + nwd.data['Local'][0]['dir_name_local']
+            dest = os.getcwd() + '/' + nwd.dir_name_local
             if os.path.isdir(dest) == False:
                os.mkdir(dest)
         #---------------------------------------------------
