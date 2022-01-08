@@ -3,9 +3,11 @@
 import os
 import sys
 import platform
+
 cwd = os.getcwd()
 sys.path.insert(1, cwd + '/CommonClasses')
 import CommonClasses.UtilsClasses as ut
+
 import concurrent.futures as cf
 import time
 import datetime
@@ -74,6 +76,7 @@ if __name__ == '__main__':
         nw_stat, nw_c, stat, platform = check_NW_availability()
         if nw_stat == False:
             print_dic(nw_c, stat)
+            
         else:
             start = time.perf_counter()
             pill2kill = threading.Event()
@@ -84,6 +87,7 @@ if __name__ == '__main__':
             
             with cf.ThreadPoolExecutor() as executor:
                 loc = executor.submit(get_r_l, ut.Get_CSV_File_Names).result()
+                
         
             CSV_local = loc.fileNamesSizeTublesArray
             CSV_remote = rem.fileNamesSizeTublesArray
@@ -91,6 +95,8 @@ if __name__ == '__main__':
             # stop event
             pill2kill.set()
             #t.join()
+            #print(CSV_remote)
+            
             if platform != 'IOS':
                 
                 # Window environment
@@ -148,8 +154,7 @@ if __name__ == '__main__':
                     print(f'Time reqired to copy file(s) from NW to Local in {round(stop-start,2)} second(s)')
                 else: 
                     print('keine files kopiert')
-
-            
-            
+                
+                            
             
             
