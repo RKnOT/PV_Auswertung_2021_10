@@ -1,0 +1,1 @@
+{"Server": {"server": "pi", "port": 445, "user": "Administrator", "pw": "2292"}, "Local": {"share": "\\\\pi\\d$", "dir_name": "PVDataLog", "dir_name_local": "PVDataLog/2022"}}

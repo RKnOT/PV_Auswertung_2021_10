@@ -12,10 +12,13 @@ import calendar
 
 from datetime import date, time, datetime
 from scandir import scandir, walk
+
+
+#a=GetNWCSV_File_Names()
+import uuid
 platform_flag = True # True windows // false IOS
 if platform.system() != 'Windows':
     platform_flag = False
-    #from scandir import scandir, walk
     from smbclient import (listdir, open_file, mkdir, register_session, rmdir, scandir)
 
 #------- class Network Data start------
@@ -24,6 +27,7 @@ jsonDat = 'NetworkParameter.json'
 class NetworkData():
    def __init__(self, ini = [], resetData = False, overWriteJson = False):
          debug = False
+         self.data =[]
          if resetData:
              ini = self.iniData()
              
@@ -92,13 +96,16 @@ class NetworkData():
    
    #---------read write json-------------         
    def writeJsonFile(self, ini):
-         with open(jsonDat, 'w') as outfile:
-                json.dump(ini, outfile)
+         
+        #with open(jsonDat, 'w') as outfile:
+         #       json.dump(ini, outfile)
+         pass
    def readJsonFile(self):  
-       if os.path.exists(jsonDat):
-           with open(jsonDat) as json_file:
-                self.data = json.load(json_file)
-       else: self.data =[]
+       #if os.path.exists(jsonDat):
+        #   with open(jsonDat) as json_file:
+         #       self.data = json.load(json_file)
+       #else: self.data =[]
+       pass
 #------- class Network Data end------
 
 #------- class Network get files under windows environment
@@ -239,7 +246,9 @@ class Get_CSV_File_Names():
         self.get_from_dir_file_names(self.PVDateien, ext)
             
     def get_from_dir_file_names(self, dir,ext):
+        cwd = os.getcwd()
         try:
+            
             #-------------- check year dir exists locally------
         
        
@@ -249,7 +258,7 @@ class Get_CSV_File_Names():
                os.mkdir(dest)
         #---------------------------------------------------
         
-            cwd = os.getcwd()
+            
             #print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
@@ -265,6 +274,17 @@ class Get_CSV_File_Names():
             os.chdir(cwd)
             self.cwd_dir = os.getcwd()
 #---------------------------
+#a = GetNWCSV_File_Names()
 
+nd = NetworkData([], True)
+workingDir = nd.share +'\\' + nd.dir_name
+        
+print(workingDir)
+print(nd.dir_name_local)
+fileNamesSizeTublesArray = []
+print('####---------#######')
+
+register_session(nd.server, username = nd.user, password = nd.pw)
+        
 
 
