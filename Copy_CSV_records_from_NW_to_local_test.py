@@ -73,7 +73,7 @@ def start_thread(pill2kill, count, thread_name = ''):
 if __name__ == '__main__':
         
         ut.GetNWCSV_File_Names()
-        '''
+        
         # check NW availability
         
         nw_stat, nw_c, stat, platform = check_NW_availability()
@@ -160,5 +160,4 @@ if __name__ == '__main__':
     
                 
                             
-        '''    
-            
+        
