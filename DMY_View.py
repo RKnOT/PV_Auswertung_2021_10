@@ -19,9 +19,8 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 6
-
-MonthSelected = 3
+DaySelected = 16p
+MonthSelected = 4
 YearSelected = 2022
 #------
 TeleSelected = 0
@@ -87,6 +86,7 @@ class MonthView():
         self.mv(csv.selected_Month_Files)
         
     def mv(self, csv):
+        #print(csv)
         dm = TagRecord() 
         A, monthYield = dm.getAllLastTelegrams(csv)
         #print(monthYield) 
@@ -130,6 +130,7 @@ class DayView():
         self.dv(csv.selected_Day_File, TeleSelected)
         
     def dv(self, dayrecord, TeleSelected):
+        
         dm =TagRecord()
         A, tpowerStr, max_ACPower= dm.getAllDayTelegramms(dayrecord, TeleSelected) 
         Pd = PlotDiagram()

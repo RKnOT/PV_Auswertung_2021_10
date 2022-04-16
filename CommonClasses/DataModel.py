@@ -19,6 +19,8 @@ class Utils():
 #--------------------------------
 class GetCSV_File_Names():
     def __init__(self, CSV_Path, dstr, ext = 'CSV'):
+        #print(CSV_Path)
+        #print(dstr)
         self.dic_years = {}
         self.dic_year = {}
         self.selected_Day_File = ''
@@ -35,7 +37,7 @@ class GetCSV_File_Names():
         os.chdir(CSV_Path)
         CSV_Path = glob('*')
         year_dirs =[]
-        
+        #print(os.listdir('.'))
         for x in os.listdir('.'):
             self.available_Years.append(x)
         self.available_Years.sort()
@@ -223,6 +225,8 @@ class PV_Telegram(PV_Telegram_Parameter):
              
 
 class TagUtil():
+    def __init__(self):
+        self.total_power= 0.0
 
 #---    
     def getFromTeleAllValues(self, t):
@@ -293,7 +297,8 @@ class TagUtil():
                   if max_ACPower < v.p.AC_Pt:
                       max_ACPower = v.p.AC_Pt
                   if count == len(teles):
-                      tpower = v.p.P_total                
+                      tpower = v.p.P_total
+                      self.total_power = v.p.P_total                
             except:
                 pass
         tpowerStr = str(tpower) + ' kWh'  

@@ -1,9 +1,15 @@
 
 #!/usr/bin/env python3
+
+
+
+
 import os
 import platform
 import shutil
 import json
+
+from pathlib import Path
 
 import csv
 import re
@@ -14,13 +20,24 @@ from datetime import date, time, datetime
 from scandir import scandir, walk
 
 
-#a=GetNWCSV_File_Names()
+debug_SMB_flag = False
+
+
+
 import uuid
 platform_flag = True # True windows // false IOS
 if platform.system() != 'Windows':
     platform_flag = False
-    from smbclient import (listdir, open_file, mkdir, register_session, rmdir, scandir)
-
+    try:
+        from smbprotocol.connection import Connection, Dialects
+        from smbclient import (listdir, mkdir, register_session, rmdir, scandir,)
+    except:
+        if debug_SMB_flag == True:
+        	print('smb protocol konnte nicht gestartet werden')
+        
+    
+   
+    
 #------- class Network Data start------
 jsonDat = 'NetworkParameter.json'
 
@@ -61,15 +78,36 @@ class NetworkData():
          self.dir_name_local = b['dir_name_local']
          self.share = b['share']
          self.dir_name = b['dir_name']
-         
+         self.root = ''
          
          self.data = ini
          
    #--------Server Daten-----------------
-   
+
    
    def iniData(self):
-         dir = 'PVDataLog/' + str(datetime.now().year)
+         
+         #defining a function to find index in a list using lambda
+         get_indexes = lambda x, searchable: [i for (y, i) in zip(searchable, range(len(searchable))) if x == y]
+         
+         #get root dir
+         #private/var/mobile/Containers/Shared/AppGroup/FA16265D-A93E-42FB-9932-E3CC306D50A8/File Provider Storage/Repositories/PV_Auswertung_2021_10
+        
+         
+         
+         p = str(Path(__file__).parents[0])
+         p_list = p.split("/")
+         index_1 = len(p_list)
+         index_2 = get_indexes('Repositories', p_list)[0]
+         root_index = index_1 - index_2 - 2
+         self.root = str(Path(__file__).parents[root_index])
+         #print(root)
+         #print('-.-.-.-')
+
+         dir_CSV = 'PVDataLog'
+         
+         dir = dir_CSV + '/' + str(datetime.now().year)
+         self.dir_local_CSV = self.root + '/'+ dir_CSV
          
          data = { 'Server' : 
                      { 
@@ -81,16 +119,16 @@ class NetworkData():
                   'Local' :
                      {
                       'share' : r'\\pi\d$', 
-                      'dir_name' : 'PVDataLog',
-                      'dir_name_local' : 'PVDataLog/' + str(datetime.today().year)
+                      'dir_name' : dir_CSV,
+                      'dir_name_local' : self.root + '//' + dir
                       }
                    }
                    
                    
          if platform_flag == True: # platform windows
-             data['Local']['dir_name_local'] = os.curdir() + '\\PVDataLog\\' + str(datetime.today().year)          
-                   
-         
+             data['Local']['dir_name_local'] = root + '\\PVDataLog\\' + str(datetime.today().year)          
+         #print(',,*******,,,,,,')          
+         #print(data['Local']['dir_name_local'])
          return data
    
    
@@ -209,62 +247,121 @@ class CopyNWfilesToLocal():
         if copy_Files == False:
             return 
 
+        nd = NetworkData([], True)
+
+        try:
+            import smbclient
+            smbclient.ClientConfig(username = nd.user, password= nd.pw)
+            smbclient.register_session(nd.server, username= nd.user, password=nd.pw)
+        except:
+            print('smbclient konnte nicht gestartet werden')    
         for i, j, in enumerate(fnamesTB):
-            source = self.workingDir + '\\' + j[0]
+            source = nd.share + '\\' + nd.dir_name + '\\' + j[0]
             #print(source)
-            dest = path_parent + nd.dir_name_local + '/' + j[0]
+            dest = nd.dir_name_local + '/' + j[0]
             #print(dest)
             if platform_flag == False:
-                register_session(nd.server, username= nd.user, password = nd.pw)
-                with open_file(source, username = nd.user, password = nd.pw, mode ='r') as fd:
-                    #shutil.copyfile(source, dest)
-                    
-                    file_contents = fd.read()
-                    #print(len(file_contents))
-                    destFile = open(dest, 'w')
-                    destFile.write(file_contents)
-                    destFile.close()
-                    self.count +=1
-                    
+                with smbclient.open_file(source, mode="r") as fd:
+                    file_content = fd.read()
+                with open(dest, 'w') as f:
+                    f.write(file_content)
+                self.count +=1
             else: #Windows
                shutil.copyfile(source, dest)
             self.copied_files.append('file: '+ j[0] + ' copied')
         
 
 #-------------------------
-
+class Get_CSV_File_Names_from_Dir():
+		def __init__(self):
+			self.stat = ''
+			self.years_month_days_dic = {}
+			
+			sorted_file_names =[]
+			
+			I_Get_CSV_File_Names = Get_CSV_File_Names(get_files_flag = False)
+			
+			# I_Get_CSV_File_Names.nd.dir_local_CSV -> directory of CSV`s
+			all_years_list = sorted(os.listdir(I_Get_CSV_File_Names.nd.dir_local_CSV))
+			for item in all_years_list:
+				CSVs_Dir = I_Get_CSV_File_Names.nd.dir_local_CSV + '/' + item
+				I_Get_CSV_File_Names.get_from_dir_file_names(CSVs_Dir, '.CSV')
+				sorted_file_names.append(I_Get_CSV_File_Names.fl)
+			#print(I_Get_CSV_File_Names.fl)
+			self.get_available_years_month_days(all_years_list, sorted_file_names)
+			#print(self.years_month_days_dic)
+			
+		def get_available_years_month_days(self, years, csv):
+			for i in range(0, len(years)):
+				m_list = self.get_available_month(csv[i])
+				#print(m_list)
+				month_days = self.get_available_days(csv[i], m_list)
+				#print(month_days)
+				self.years_month_days_dic[years[i]] = month_days
+			#print(self.years_month_days_dic)
+					
+		def get_available_month(self, list_year):
+			list_csv_records =[]
+			list_available_month =[]
+			m_list = ['_01_', '_02_', '_03_', '_04_','_05_', '_06_', '_07_', '_08_', '_09_', '_10_', '_11_', '_12_'] 	
+			for item in m_list:
+				result = list(filter(lambda x: item in x, list_year))
+				if result != []:
+					list_available_month.append(item[1:-1])
+			#print(list_available_month)
+			return list_available_month
+				
+		def get_available_days(self, list_year, year_month):
+			#print(list_year)
+			#print(year_month)
+			month_days_dic = {}
+			for item in year_month:
+				i = '_' + item + '_'
+				result = list(filter(lambda x: i in x, list_year))
+				#print(result)
+				days = list(map(lambda x :x[8:10] , result))
+				#print(days)
+				month_days_dic[item] = days
+			#print(month_days_dic)	
+			return month_days_dic
+				
+			
+#-------------------------
 class Get_CSV_File_Names():
-    def __init__(self, dir = '', ext ='.CSV'):
+    def __init__(self, dir = '', ext ='.CSV', get_files_flag = True):
         self.cwd_dir = ''
         self.fileNamesSizeTublesArray = ''
         self.stat=''
         self.fl =[]
         self.fl_fs = []
         if dir == '':
-            nd = NetworkData([], True)
-            self.PVDateien = nd.dir_name_local
-        self.get_from_dir_file_names(self.PVDateien, ext)
+            self.nd = NetworkData([], True)
+            self.PVDateien = self.nd.dir_name_local
+            #print(self.PVDateien)
+        if(get_files_flag):
+        	self.get_from_dir_file_names(self.PVDateien, ext)
             
-    def get_from_dir_file_names(self, dir,ext):
+    def get_from_dir_file_names(self, dir, ext):
+        #print(dir)
         cwd = os.getcwd()
+        #print(cwd)
         try:
             
             #-------------- check year dir exists locally------
-        
-       
-            nwd = NetworkData()
-            dest = os.getcwd() + '/' + nwd.dir_name_local
-            if os.path.isdir(dest) == False:
-               os.mkdir(dest)
+            if os.path.isdir(self.nd.dir_name_local) == False:
+                os.mkdir(dest)
+            
         #---------------------------------------------------
         
             
             #print(dir)
             os.chdir(dir)
             self.dir_files = os.getcwd()
-            self.fl  = list(filter(lambda x: x if ext in x else [], os.listdir()))
+            #print(os.listdir())
+            self.fl  = sorted(list(filter(lambda x: x if ext in x else [], os.listdir())))
             self.fileNamesSizeTublesArray  = list(map(lambda x: (x, os.path.getsize(x)), self.fl))
             self.stat = f'{len(self.fl)} files mit der Extension: {ext} gefunden'
+            #print(self.stat)
         except:
             self.fl.append(-1)
             self.fileNamesSizeTublesArray(-1)
@@ -274,17 +371,53 @@ class Get_CSV_File_Names():
             os.chdir(cwd)
             self.cwd_dir = os.getcwd()
 #---------------------------
-#a = GetNWCSV_File_Names()
 
+#test
+'''
+file_to_copy = '2022_03_08.CSV'
 nd = NetworkData([], True)
-workingDir = nd.share +'\\' + nd.dir_name
-        
-print(workingDir)
-print(nd.dir_name_local)
-fileNamesSizeTublesArray = []
-print('####---------#######')
-
-register_session(nd.server, username = nd.user, password = nd.pw)
-        
+local_dir_file = nd.dir_name_local + '/'+ file_to_copy
+print(local_dir_file)
 
 
+
+
+nw_dir = nd.share + '\\' + nd.dir_name + '\\' + file_to_copy
+print(nw_dir)
+
+import smbclient
+
+# Optional - specify the default credentials to use on the global config object
+smbclient.ClientConfig(username = nd.user, password= nd.pw)
+
+# Optional - register the credentials with a server (overrides ClientConfig for that server)
+smbclient.register_session(nd.server, username= nd.user, password=nd.pw)
+
+
+with smbclient.open_file(nw_dir, mode="r") as fd:
+    file_content = fd.read()
+
+with open(local_dir_file, 'w') as f:
+    f.write(file_content)
+
+
+
+
+
+loc = Get_CSV_File_Names()
+CSV_local = loc.fileNamesSizeTublesArray
+rem = GetNWCSV_File_Names()
+CSV_remote = rem.fileNamesSizeTublesArray
+#print(CSV_remote)
+   
+fToCopy = CompareSameFilesRemoteAndLocal(CSV_remote, CSV_local)
+
+print(fToCopy.fileToUpdate)
+
+
+
+copyFile = CopyNWfilesToLocal(fToCopy.fileToUpdate)
+print(copyFile.copied_files)
+'''
+    
+   
