@@ -1,7 +1,9 @@
+import matplotlib.pyplot as plt
+import numpy as np
 
 import json
 import os
-
+import datetime
 
 import UtilsClasses as ut
 
@@ -10,51 +12,134 @@ from DataModel import GetCSV_File_Names as GetCSV_Names
 
 from DataModel import GetCSV_File_Names as PV_Telegram
 from DataModel import TagUtil as TagRecord
-'''
-Aggregations Stufen
 
-Years:	2012 -> Month 1-12 -> Day 01-31
-
-										 							
-list {'2012': {'10': ['17', '18', .. , '31'], '11' : ['01', '02', .., '30'], '12': ['01', '02', .. ,'30', '31']}, '2013': {...}}
-
-
-'''
-
-
-
-
-
-
-class Aggregate_Year_CSV():
-	def __init__(self):
-		self.nwd = ut.NetworkData()
-		self.nwd.iniData()
-		self.dir_aggr = 'Aggregation'
-		#-------------- check year dir exists locally------
-		self.dest = self.nwd.dir_local_CSV + '/' + self.dir_aggr + '/'
-	
-		if os.path.isdir(self.dest) == False:
-			os.mkdir(dest)
-		#---------------------------------------------------
-        
-		I_get_csv_file_names = ut.Get_CSV_File_Names_from_Dir()
-		self.dic_y_m_d = I_get_csv_file_names.years_month_days_dic
-		#print()
-		#self.check_dirs_exists()
-		self.aggregate_yield()
+#------------------------------------
+class helpers_date_handling():
+	def __init__(self, debug = False):
+		'''
+-- helpers_date_handling class --		
+Doc Aufruf: 
+	print(helpers_date_handling.__init__.__doc__)
+Dictionary with the following current date keyes:
+	dict_keys(['year_str', 'year_int', 'month_str', 'month_int', 'day_str', 'day_int', 'date_str', 'date_datetime'])
+add days:
+	t1 = self.datum_dic['current_date_datetime']
+	t2 = t1 + datetime.timedelta(days=2)
+	print(t2)
 		
-	def writeJsonFile(self, dest, file_content):
-		with open(dest, 'w') as outfile:
+		'''
+		self.get_current_date()
+		if debug:
+			print(self.datum_dic)
+			print(self.datum_dic.keys())
+	
+	def get_current_date(self):
+		self.datum_dic = {}
+		now = datetime.datetime.now()
+		self.datum_dic['year_str'] = now.strftime('%Y')
+		self.datum_dic['year_int'] = int(self.datum_dic['year_str'])
+		self.datum_dic['month_str'] = now.strftime('%m')
+		self.datum_dic['month_int'] = int(self.datum_dic['month_str'])
+		self.datum_dic['day_str'] = (now.strftime('%d'))
+		self.datum_dic['day_int'] = int(self.datum_dic['day_str'])
+		self.datum_dic['date_str'] = self.datum_dic['day_str'] + '_' + self.datum_dic['month_str'] + '_' + self.datum_dic['year_str']
+		self.datum_dic['date_datetime'] = datetime.datetime.strptime(self.datum_dic['date_str'], '%d_%m_%Y').date()
+		
+	
+		
+
+class helpers(helpers_date_handling):
+	
+	def __init__(self):
+			super().__init__()
+	
+	'---------------'
+	def gen_empty_year_month_yield(self): 
+		year_month_empty_dic = {}
+		for i in range(1, 13):
+			m = f'{i:02d}'
+			year_month_empty_dic[m] = 0.0
+		return year_month_empty_dic
+			
+	'--------------'
+	def gen_years_yield_empty(self, start_year = 2012):
+		years_empty_dic = {}
+		now = datetime.datetime.now()
+		current_year = int(now.strftime("%Y"))
+		current_year = current_year			
+		year_count = current_year - start_year
+		for i in range(2012, current_year):
+			years_empty_dic[str(i)] = 0
+		return years_empty_dic
+	'----------------'	
+	def years_yield_abgerechnet_dic(self):
+		 year_yield_abgerechnet_dic = {'2012': 431.0, '2013': 7325.0, '2014': 7878.0, '2015': 7733.0, '2016': 7729.0, '2017': 7797.0, '2018': 7972.0, '2019': 7644.0, '2020': 7301.0, '2021': 6705.0, '2022': 0.0}
+		 return year_yield_abgerechnet_dic
+	'----------------'
+	def years_month_yield(self):
+		years_month_yield_dic = {'2012': {'01': 0.0, '02': 0.0, '03': 0.0, '04': 0.0, '05': 0.0, '06': 0.0, '07': 0.0, '08': 0.0, '09': 0.0, '10': 134.47799999999998, '11': 208.01399999999995, '12': 105.84400000000002}, '2013': {'01': 103.91399999999999, '02': 198.77499999999998, '03': 566.99299999999982, '04': 772.45999999999992, '05': 972.08600000000001, '06': 1117.6950000000002, '07': 1410.3979999999997, '08': 1153.4420000000002, '09': 660.8850000000001, '10': 435.38700000000017, '11': 186.82699999999997, '12': 191.74200000000002}, '2014': {'01': 206.75899999999999, '02': 399.04599999999994, '03': 792.1350000000001, '04': 838.55600000000004, '05': 1087.1199999999999, '06': 1375.8909999999998, '07': 993.85299999999984, '08': 910.68700000000013, '09': 709.94499999999994, '10': 482.65800000000002, '11': 191.46199999999999, '12': 116.79300000000001}, '2015': {'01': 147.99200000000002, '02': 236.47200000000004, '03': 754.86900000000014, '04': 387.44400000000007, '05': 983.84000000000003, '06': 1201.2860000000001, '07': 1322.0159999999998, '08': 1112.1320000000001, '09': 758.10000000000002, '10': 436.71399999999988, '11': 219.62800000000004, '12': 173.02500000000001}, '2020': {'01': 0.0, '02': 0.0, '03': 0.0, '04': 264.25099999999998, '05': 1059.7780000000002, '06': 890.39499999999987, '07': 1133.665, '08': 872.91399999999976, '09': 667.8420000000001, '10': 346.84800000000007, '11': 185.85499999999999, '12': 70.75200000000001}, '2021': {'01': 28.644999999999996, '02': 294.35599999999994, '03': 659.23099999999988, '04': 897.67400000000009, '05': 908.54700000000037, '06': 1101.683, '07': 921.1869999999999, '08': 763.33100000000002, '09': 746.71199999999999, '10': 415.58099999999996, '11': 153.73000000000005, '12': 110.48099999999999}, '2022': {'01': 209.87899999999999, '02': 368.44100000000003, '03': 748.68799999999999, '04': 620.09499999999991, '05': 0.0, '06': 0.0, '07': 0.0, '08': 0.0, '09': 0.0, '10': 0.0, '11': 0.0, '12': 0.0}}
+		
+		years_yield_dic = self.gen_years_yield_empty()
+		for k in list(years_month_yield_dic.keys()):
+			#print(k)
+			year_yield = 0.0
+			for k1 in years_month_yield_dic[k]:
+				month_yield_format = "{:8.3f}".format(years_month_yield_dic[k][k1])
+				#print("year {}: | month : {} | yield : {}".format(k, k1, month_yield_format))
+				year_yield += years_month_yield_dic[k][k1]
+			years_yield_dic[k] = year_yield 
+		#print('----')	
+		#print(years_yield_dic)
+		return years_month_yield_dic, years_yield_dic
+	'-----'
+	def convert_to_plot_list(self, dic_list):
+		x = []
+		y = []
+		for k in list(dic_list.keys()):
+			x.append(int(k))
+			y.append(dic_list[k])
+		return x, y		
+	
+	'------'
+	def writeJsonFile(self, dest_file_name, file_content):
+		with open(dest_file_name, 'w') as outfile:
 			json.dump(file_content, outfile)
 			pass
-	def readJsonFile(self):  
-		if os.path.exists(jsonDat):
-			with open(jsonDat) as json_file:
-				self.data = json.load(json_file)
-		else: self.data =[]
-		pass
+	
+	def readJsonFile(self, dest_file_name):  
+		if os.path.exists(dest_file_name):
+			with open(dest_file_name) as json_file:
+				data = json.load(json_file)
+		else: 
+			data = {}	
+		return data
+		
+#------------------------------------
 
+
+class Aggregate_Years_CSV():
+	def __init__(self):
+		
+		self.helpers = helpers()
+		self.nwd = ut.NetworkData()
+		self.nwd.iniData()
+		
+		self.last_entry_dic = {}
+		dir_aggr = 'Aggregation'
+		last_record_date_json_file_name = 'last_recorded_date.json'
+		years_yield_data_json_file_name = 'years_yield_data.json'
+		
+		#-------------- check year dir exists locally------
+		dest = self.nwd.dir_local_CSV + '/' + dir_aggr + '/'
+		if os.path.isdir(dest) == False:
+			os.mkdir(dest)
+		#---------------------------------------------------
+		self.dir_file_date = dest + last_record_date_json_file_name
+		
+		self.dir_file_recorded_data = dest + years_yield_data_json_file_name
+		
+		
+	
 	def check_dirs_exists(self):
 		year_file_names = {}
 		
@@ -70,7 +155,7 @@ class Aggregate_Year_CSV():
 			year_month_names[key_year] = list_month
 		year_file_names['Years'] = list_temp		
 				
-		print(year_file_names['Years'])
+		print((year_file_names['Years']))
 		print(year_month_names)		
 		
 		
@@ -83,19 +168,33 @@ class Aggregate_Year_CSV():
 		pass
 	
 	
-	def aggregate_yield(self):  
+	def aggregate_yield(self, years_selected = ['']):  
+			
+		I_get_csv_file_names = ut.Get_CSV_File_Names_from_Dir(years_selected)
 		
+		self.dic_y_m_d = I_get_csv_file_names.years_month_days_dic
+		'''
+		print('----')
+		print(self.dic_y_m_d)
+		print('----')
+		'''
+		month_monthYield_dic = {}
 		dm = TagRecord()
 		list_day_yield_pro_month = []
 		years_month_yields = {}
 		key_years = list(self.dic_y_m_d.keys())
 		#print(key_years)
-		for key_year in key_years:
 		
+		year_month_yield_dic = {}
+		month_1_12 = self.helpers.gen_empty_year_month_yield()
+		for key_year in key_years:
+			# debug
+			#if key_year == '2014': break
+			#------------
+			print(key_year)
 			month = list(self.dic_y_m_d[key_year].keys())
-			year_month_yield =[]
-				
 			for key_month in month:
+				
 				month_yield = 0.0
 				dic_month = {}
 				list_days_in_month = []
@@ -105,17 +204,20 @@ class Aggregate_Year_CSV():
 					file_name = key_year +'_'+ key_month +'_'+ i3
 					gcsvN = GetCSV_Names(self.nwd.dir_local_CSV, file_name)
 					list_days_in_month.append(key_year +'_'+ key_month + '_'+ i3 + '.CSV')
-						
 				dic_month[gcsvN.path] = list_days_in_month
 				#print(dic_month)
 				dm = TagRecord()
 				A, monthYield = dm.getAllLastTelegrams(dic_month)
-				year_month_yield.append(monthYield)
-				#years_month_yields[key_year] = month_yield
-				#print(key_year, key_month, monthYield) 
-			
-			print(year_month_yield)
-				#break #Debug
+				
+				month_1_12[key_month] = monthYield 
+			#print('---')
+			year_month_yield_dic[key_year] = month_1_12
+			month_1_12 = self.helpers.gen_empty_year_month_yield()
+		#print(month_1_12)
+		#print(year_month_yield_dic)
+		return year_month_yield_dic
+		
+	
 		
 		'''
 		for item in list_file_names:
@@ -131,38 +233,139 @@ class Aggregate_Year_CSV():
 			#return
 			pass
 		'''
-		
+
 if __name__ == '__main__':
 		
-		out = lambda *x: print(' & '.join(map(str, x)))
-		a = out(1, 2, 3, 'hallo', 'gp1')
+		# debug
+		#print(helpers_date_handling.__init__.__doc__)
+		
+		hp = helpers()
+		agr = Aggregate_Years_CSV()
+		
+		current_year_str = hp.datum_dic['date_str']
+		current_date = {current_year_str : 'ok'}
+		
+		years_yields = ''
+		year_yield = ''
+		json_write = ''
+		# check last date record
+		content = hp.readJsonFile(agr.dir_file_date)
+		if content == {}:
+			print('no date file available')
+			#read all years yields
+			years_yield = agr.aggregate_yield()
+		else: 
+			#print(list(content.keys())[0])
+			#print(hp.datum_dic['date_str'])
+			pass
+			
+		if list(content.keys())[0] != hp.datum_dic['date_str']:
+			year_yield = agr.aggregate_yield([hp.datum_dic['year_str']])
+					
+		years_yield = hp.readJsonFile(agr.dir_file_recorded_data)
+		
+			
+		if year_yield != '':
+			years_yield[hp.datum_dic['year_str']] = year_yield
+			pass	
+		
+		all_years_list = ['']
+		
+		
+		print(years_yield)
+		
+		
+		hp.writeJsonFile(agr.dir_file_recorded_data, years_yield)
+		hp.writeJsonFile(agr.dir_file_date, current_date) # write current date to json
 		
 		
 		
-		Year_list = ['2012', '2013', '2014', '2015', '2020', '2021', '2022']
-		tuple1 = ()
-		tuple2 = ()
-		#tuple3 = ()
-		for i in range(0, len(Year_list)):
-			tuple1 = (*tuple1, Year_list[i])
-		print(tuple1)
-		for i in range(0, len(Year_list)):
-			tuple2 = (*tuple2, Year_list[i])
-		print(tuple2)
 		
-		tuple3 =   lambda x: x, Year_list""
 		
-		print(tuple3)
-		#Aggregate_Year_CSV()
+		
+		
+		#agr.aggregate_yield([current_year_str])
+		
+		
+		
+		
+		#last_date = list(hp.readJsonFile(agr.dir_file_date).keys())[0]
+		#print(last_date)	
 		
 		
 		'''
+		year_empty_dic = hp.gen_years_yield_empty()
+		#print(year_empty_dic)
+		years_yield_abgerechnet = hp.years_yield_abgerechnet_dic()
 		
-		list_fn = ['2022_01_01.CSV', '2022_01_02.CSV', '2022_01_03.CSV', '2022_01_04.CSV', '2022_01_05.CSV', '2022_01_06.CSV', '2022_01_07.CSV', '2022_01_08.CSV', '2022_01_09.CSV', '2022_01_10.CSV', '2022_01_11.CSV', '2022_01_12.CSV', '2022_01_13.CSV', '2022_01_14.CSV', '2022_01_15.CSV', '2022_01_16.CSV', '2022_01_17.CSV', '2022_01_18.CSV', '2022_01_19.CSV', '2022_01_20.CSV', '2022_01_21.CSV', '2022_01_22.CSV', '2022_01_23.CSV', '2022_01_24.CSV', '2022_01_25.CSV', '2022_01_26.CSV', '2022_01_27.CSV', '2022_01_28.CSV', '2022_01_29.CSV', '2022_01_30.CSV', '2022_01_31.CSV', '2022_02_01.CSV', '2022_02_02.CSV', '2022_02_03.CSV', '2022_02_04.CSV', '2022_02_05.CSV', '2022_02_06.CSV', '2022_02_07.CSV', '2022_02_08.CSV', '2022_02_09.CSV', '2022_02_10.CSV', '2022_02_11.CSV', '2022_02_12.CSV', '2022_02_13.CSV', '2022_02_14.CSV', '2022_02_15.CSV', '2022_02_16.CSV', '2022_02_17.CSV', '2022_02_18.CSV', '2022_02_19.CSV', '2022_02_20.CSV', '2022_02_21.CSV', '2022_02_22.CSV', '2022_02_23.CSV', '2022_02_24.CSV', '2022_02_25.CSV', '2022_02_26.CSV', '2022_02_27.CSV', '2022_02_28.CSV', '2022_03_01.CSV', '2022_03_02.CSV', '2022_03_03.CSV', '2022_03_04.CSV', '2022_03_05.CSV', '2022_03_06.CSV', '2022_03_07.CSV', '2022_03_08.CSV', '2022_03_09.CSV', '2022_03_10.CSV', '2022_03_11.CSV', '2022_03_12.CSV', '2022_03_13.CSV', '2022_03_14.CSV', '2022_03_15.CSV', '2022_03_16.CSV']
+		years_month, years_yield_aufgezeichnet  = hp.years_month_yield()
 		
-		m_list = ['_01_', '_02_', '_03_', '_04_','_05_', '_06_', '_07_', '_08_', '_09_', '_10_', '_11_', '_12_'] 	
-			
+		print(agr.years_aggregation[current_year_str])
+		print('----')
+		print(years_month[current_year_str])
 		
+		if agr.years_aggregation[current_year_str] == years_month[current_year_str]:
+			print(True)
+		else:
+			print(False)
+		
+		years_month[current_year_str] = agr.years_aggregation[current_year_str]
+		
+		if agr.years_aggregation['2022'] == years_month['2022']:
+			print(True)
+		else:
+			print(False)
+		
+		print('----')
+		print(years_month)
+		hp.writeJsonFile(des_file_years_yield, years_month)
+		
+		
+		
+		
+		#print(years_yield_aufgezeichnet)
+		#print('---')
+		#print(years_yield_abgerechnet)
+		x1, y1 = hp.convert_to_plot_list(years_yield_abgerechnet)
+		x2, y2 = hp.convert_to_plot_list(years_yield_aufgezeichnet)
+		#print(x1)
+		print(y1)
+		#print(x2)
+		print(y2)
+		
+		
+		
+		# Declaring the figure or the plot (y, x) or (width, height)
+		plt.figure(figsize=[15, 10])
+		# Data to be plotted
+		X = np.arange(len(x1))
+		
+		# Passing the parameters to the bar function, this is the main function which creates the bar plot
+		# Using X now to align the bars side by side
+		plt.bar(X, y1, color = 'black', width = 0.25)
+		plt.bar(X + 0.25, y2, color = 'g', width = 0.25)
+		# Creating the legend of the bars in the plot
+		plt.legend(['Abgerechnet', 'Ermittelt'])
+		# Overiding the x axis with the country names
+		plt.xticks([i + 0.25 for i in range(len(x1))], x1)
+		# Giving the tilte for the plot
+		plt.title("Jahres Erträge Abgerechnet / Ermittelt")
+		# Namimg the x and y axis
+		plt.xlabel('Jahre')
+		plt.ylabel('kWh')
+		# Saving the plot as a 'png'
+		#plt.savefig('4BarPlot.png')
+		# Displaying the bar plot
+		plt.show()
+		
+		
+		
+		
+		
+		
+		
+		
+				
 		mul = lambda x: (lambda y: y * x)
 		times4 = mul(4)
 		print(times4(2))
@@ -313,3 +516,4 @@ print('..')
 		guru(lambda: printer_two('printer 2 LAMBDA CALL', 'hhjhjhjhj'))
 		'''
 	
+

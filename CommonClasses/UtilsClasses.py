@@ -273,22 +273,27 @@ class CopyNWfilesToLocal():
 
 #-------------------------
 class Get_CSV_File_Names_from_Dir():
-		def __init__(self):
+		def __init__(self, selected_years = ['']):
 			self.stat = ''
 			self.years_month_days_dic = {}
-			
+			self.years_list = []
 			sorted_file_names =[]
 			
 			I_Get_CSV_File_Names = Get_CSV_File_Names(get_files_flag = False)
 			
 			# I_Get_CSV_File_Names.nd.dir_local_CSV -> directory of CSV`s
-			all_years_list = sorted(os.listdir(I_Get_CSV_File_Names.nd.dir_local_CSV))
-			for item in all_years_list:
+			if selected_years[0] == '':
+				self.years_list = list(filter(lambda x : len(x) == 4 , sorted(os.listdir(I_Get_CSV_File_Names.nd.dir_local_CSV)) ))
+			else:
+				 self.years_list = selected_years
+			#print(self.years_list)
+			
+			for item in self.years_list:
 				CSVs_Dir = I_Get_CSV_File_Names.nd.dir_local_CSV + '/' + item
 				I_Get_CSV_File_Names.get_from_dir_file_names(CSVs_Dir, '.CSV')
 				sorted_file_names.append(I_Get_CSV_File_Names.fl)
 			#print(I_Get_CSV_File_Names.fl)
-			self.get_available_years_month_days(all_years_list, sorted_file_names)
+			self.get_available_years_month_days(self.years_list, sorted_file_names)
 			#print(self.years_month_days_dic)
 			
 		def get_available_years_month_days(self, years, csv):
