@@ -1,8 +1,8 @@
 
 #!/usr/bin/env python3
 
-
-
+#python -m pip install --upgrade pip
+# pip install pandas
 
 import os
 import platform

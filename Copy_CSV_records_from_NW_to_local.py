@@ -52,6 +52,7 @@ def check_sys_platform():
         
 def check_NW_availability():
     platform = check_sys_platform()    
+    
     if platform == 'IOS':
         stat = 'NW server not available'
         try:
@@ -80,6 +81,7 @@ if __name__ == '__main__':
             print_dic(nw_c, stat)
             
         else:
+            
             start = time.perf_counter()
             pill2kill = threading.Event()
             count = 0

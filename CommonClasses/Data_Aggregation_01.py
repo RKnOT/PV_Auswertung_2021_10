@@ -3,56 +3,122 @@ import numpy as np
 
 import json
 import os
-import datetime
+from datetime import datetime
 
 import UtilsClasses as ut
 
+print(os.getcwd())
+
+'''
+import smbprotocol
+
+import uuid
+
+from smbprotocol.connection import Connection, Dialects
+
+connection = Connection(uuid.uuid4(),   '\\pi\d$' , 445)
+connection.connect(Dialects.SMB_3_0_2)
+'''
 
 from DataModel import GetCSV_File_Names as GetCSV_Names
 
 from DataModel import GetCSV_File_Names as PV_Telegram
 from DataModel import TagUtil as TagRecord
 
+print(f'{"-"*40}')
+
+
+#import smbprotocol
+#from smbprotocol.connection import Connection, Dialects
+
 #------------------------------------
 class helpers_date_handling():
-	def __init__(self, debug = False):
+	def __init__(self, date_time_str = '', debug_flag = False):
 		'''
 -- helpers_date_handling class --		
 Doc Aufruf: 
 	print(helpers_date_handling.__init__.__doc__)
+date_time_str format -> '2021_12_22 12:44:22' oder '2021_12_22'
 Dictionary with the following current date keyes:
-	dict_keys(['year_str', 'year_int', 'month_str', 'month_int', 'day_str', 'day_int', 'date_str', 'date_datetime'])
+	dict_keys(['year_str', 'year_int', 'month_str', 'month_int', 'day_str', 'day_int', 'date_str', 'date_date', 'date_time_str', 'date_time'])
+len(datum_dic.keys()) == 1 -> falsches datum -> !! keine datum info !! 
+
 add days:
 	t1 = self.datum_dic['current_date_datetime']
 	t2 = t1 + datetime.timedelta(days=2)
 	print(t2)
 		
 		'''
-		self.get_current_date()
-		if debug:
-			print(self.datum_dic)
-			print(self.datum_dic.keys())
-	
-	def get_current_date(self):
 		self.datum_dic = {}
-		now = datetime.datetime.now()
+		date_time_format = '%Y_%m_%d %H:%M:%S'
+		date_format = date_time_format[0:8]
+		if date_time_str == '':
+			now = datetime.now()
+		else:	
+			try:
+				now = datetime.strptime(date_time_str, date_time_format)
+			except: 
+				try:
+					now = datetime.strptime(date_time_str, date_format)
+				except: 
+					self.datum_dic['Fehler'] = 'falsches Datum'
+					return 
+		
 		self.datum_dic['year_str'] = now.strftime('%Y')
 		self.datum_dic['year_int'] = int(self.datum_dic['year_str'])
 		self.datum_dic['month_str'] = now.strftime('%m')
 		self.datum_dic['month_int'] = int(self.datum_dic['month_str'])
 		self.datum_dic['day_str'] = (now.strftime('%d'))
 		self.datum_dic['day_int'] = int(self.datum_dic['day_str'])
-		self.datum_dic['date_str'] = self.datum_dic['day_str'] + '_' + self.datum_dic['month_str'] + '_' + self.datum_dic['year_str']
-		self.datum_dic['date_datetime'] = datetime.datetime.strptime(self.datum_dic['date_str'], '%d_%m_%Y').date()
+		self.datum_dic['date_str'] = self.datum_dic['year_str'] + '_' + self.datum_dic['month_str'] + '_' + self.datum_dic['day_str']
+		self.datum_dic['date_date'] = datetime.strptime(self.datum_dic['date_str'], date_format).date()
+		self.datum_dic['date_time_str'] = now.strftime(date_time_format)
+		self.datum_dic['date_time'] = datetime.strptime(self.datum_dic['date_time_str'], date_time_format)
+		if debug_flag: self.debug(self)
+			
+	
+	def date_time_differenz(self, t1, t2):
+		diff_dic = {}
+		same_date_flag = False
+		same_year_flag = False
+		same_year_month_flag = False
+		if t1.datum_dic['date_date'] == t2.datum_dic['date_date']:
+			same_date_flag = True
+		if t1.datum_dic['date_date'].year == t2.datum_dic['date_date'].year:
+			same_year_flag = True
+			if(t1.datum_dic['date_date'].month == t2.datum_dic['date_date'].month):
+				same_year_month_flag = True
+		diff_dic['time_delta'] = t1.datum_dic['date_time'] - t2.datum_dic['date_time']
+		diff_dic['same_date_flag'] = same_date_flag
+		diff_dic['same_year_flag'] = same_year_flag
+		diff_dic['same_year_month'] = same_year_month_flag
+		return diff_dic
+	
+	def debug(self, hp):
+		print(len(self.datum_dic.keys()))
+		print()
+		print(self.datum_dic.keys())
+		print()
+		print(self.datum_dic)
+		print('end debug_date_handling')
+		print()
 		
 	
 		
-
+#--- debug helpers_date_handling ----------
+'''
+test_date = '2021_12_22'
+test_date = '2021_12_22 23:12:00'
+hp1 = helpers_date_handling(test_date, debug_flag = True)
+hp2 = helpers_date_handling(debug_flag = True)
+diff = hp1.date_time_differenz(hp2 , hp1)
+print(diff)
+'''
+#___________________________________________
 class helpers(helpers_date_handling):
 	
 	def __init__(self):
 			super().__init__()
-	
 	'---------------'
 	def gen_empty_year_month_yield(self): 
 		year_month_empty_dic = {}
@@ -60,11 +126,10 @@ class helpers(helpers_date_handling):
 			m = f'{i:02d}'
 			year_month_empty_dic[m] = 0.0
 		return year_month_empty_dic
-			
 	'--------------'
 	def gen_years_yield_empty(self, start_year = 2012):
 		years_empty_dic = {}
-		now = datetime.datetime.now()
+		now = datetime.now()
 		current_year = int(now.strftime("%Y"))
 		current_year = current_year			
 		year_count = current_year - start_year
@@ -76,29 +141,37 @@ class helpers(helpers_date_handling):
 		 year_yield_abgerechnet_dic = {'2012': 431.0, '2013': 7325.0, '2014': 7878.0, '2015': 7733.0, '2016': 7729.0, '2017': 7797.0, '2018': 7972.0, '2019': 7644.0, '2020': 7301.0, '2021': 6705.0, '2022': 0.0}
 		 return year_yield_abgerechnet_dic
 	'----------------'
-	def years_month_yield(self):
-		years_month_yield_dic = {'2012': {'01': 0.0, '02': 0.0, '03': 0.0, '04': 0.0, '05': 0.0, '06': 0.0, '07': 0.0, '08': 0.0, '09': 0.0, '10': 134.47799999999998, '11': 208.01399999999995, '12': 105.84400000000002}, '2013': {'01': 103.91399999999999, '02': 198.77499999999998, '03': 566.99299999999982, '04': 772.45999999999992, '05': 972.08600000000001, '06': 1117.6950000000002, '07': 1410.3979999999997, '08': 1153.4420000000002, '09': 660.8850000000001, '10': 435.38700000000017, '11': 186.82699999999997, '12': 191.74200000000002}, '2014': {'01': 206.75899999999999, '02': 399.04599999999994, '03': 792.1350000000001, '04': 838.55600000000004, '05': 1087.1199999999999, '06': 1375.8909999999998, '07': 993.85299999999984, '08': 910.68700000000013, '09': 709.94499999999994, '10': 482.65800000000002, '11': 191.46199999999999, '12': 116.79300000000001}, '2015': {'01': 147.99200000000002, '02': 236.47200000000004, '03': 754.86900000000014, '04': 387.44400000000007, '05': 983.84000000000003, '06': 1201.2860000000001, '07': 1322.0159999999998, '08': 1112.1320000000001, '09': 758.10000000000002, '10': 436.71399999999988, '11': 219.62800000000004, '12': 173.02500000000001}, '2020': {'01': 0.0, '02': 0.0, '03': 0.0, '04': 264.25099999999998, '05': 1059.7780000000002, '06': 890.39499999999987, '07': 1133.665, '08': 872.91399999999976, '09': 667.8420000000001, '10': 346.84800000000007, '11': 185.85499999999999, '12': 70.75200000000001}, '2021': {'01': 28.644999999999996, '02': 294.35599999999994, '03': 659.23099999999988, '04': 897.67400000000009, '05': 908.54700000000037, '06': 1101.683, '07': 921.1869999999999, '08': 763.33100000000002, '09': 746.71199999999999, '10': 415.58099999999996, '11': 153.73000000000005, '12': 110.48099999999999}, '2022': {'01': 209.87899999999999, '02': 368.44100000000003, '03': 748.68799999999999, '04': 620.09499999999991, '05': 0.0, '06': 0.0, '07': 0.0, '08': 0.0, '09': 0.0, '10': 0.0, '11': 0.0, '12': 0.0}}
-		
+	def years_month_yield(self, years_month_yield):
 		years_yield_dic = self.gen_years_yield_empty()
 		for k in list(years_month_yield_dic.keys()):
 			#print(k)
+			#print(years_month_yield_dic[k])
 			year_yield = 0.0
 			for k1 in years_month_yield_dic[k]:
+				#print(k1)
+				#print(type(years_month_yield_dic[k][k1]), type(years_month_yield_dic[k][k1]) is dict)
 				month_yield_format = "{:8.3f}".format(years_month_yield_dic[k][k1])
 				#print("year {}: | month : {} | yield : {}".format(k, k1, month_yield_format))
 				year_yield += years_month_yield_dic[k][k1]
 			years_yield_dic[k] = year_yield 
 		#print('----')	
 		#print(years_yield_dic)
-		return years_month_yield_dic, years_yield_dic
-	'-----'
-	def convert_to_plot_list(self, dic_list):
-		x = []
-		y = []
-		for k in list(dic_list.keys()):
-			x.append(int(k))
-			y.append(dic_list[k])
-		return x, y		
+		return years_yield_dic
+	'---------------'
+	def convert_to_bar_plot_lists(self, *args):
+		plot_lists = {}
+		x = list(args[0].keys())
+		X = np.arange(len(x))
+		y_n = []
+		for item in args:
+			y = list(item.values())
+			y_n.append(y)
+		plot_lists['x_bezeichnung'] = x
+		plot_lists['x_werte'] = X
+		plot_lists['y_werte_liste'] = y_n
+		#print(plot_lists)
+		#print('--')
+		return plot_lists
 	
 	'------'
 	def writeJsonFile(self, dest_file_name, file_content):
@@ -119,30 +192,32 @@ class helpers(helpers_date_handling):
 
 class Aggregate_Years_CSV():
 	def __init__(self):
+		'''
+dict_keys(['last_recorded_date', 'years_month_yield_data', 'years_yield_data_aufgezeichnet', 'years_yield_data_abgerechnet'])
+		'''
 		
 		self.helpers = helpers()
 		self.nwd = ut.NetworkData()
 		self.nwd.iniData()
 		
 		self.last_entry_dic = {}
-		dir_aggr = 'Aggregation'
-		last_record_date_json_file_name = 'last_recorded_date.json'
-		years_yield_data_json_file_name = 'years_yield_data.json'
+		dir_aggr = 'Aggregation/'
+		self.dir_file_dic = {}
 		
 		#-------------- check year dir exists locally------
-		dest = self.nwd.dir_local_CSV + '/' + dir_aggr + '/'
+		dest = os.path.join(self.nwd.dir_local_CSV, dir_aggr)
+		print(dest)
 		if os.path.isdir(dest) == False:
 			os.mkdir(dest)
 		#---------------------------------------------------
-		self.dir_file_date = dest + last_record_date_json_file_name
 		
-		self.dir_file_recorded_data = dest + years_yield_data_json_file_name
-		
-		
-	
+		self.dir_file_dic['last_recorded_date'] = dest + 'last_recorded_date.json'
+		self.dir_file_dic['years_month_yield_data'] = dest + 'years_month_yield_data.json'
+		self.dir_file_dic['years_yield_data_aufgezeichnet'] = dest + 'years_yield_data_aufgezeichnet.json'
+		self.dir_file_dic['years_yield_data_abgerechnet'] = dest + 'years_yield_data_abgerechnet.json'
+		'---------------'
 	def check_dirs_exists(self):
 		year_file_names = {}
-		
 		year_month_names = {}
 		list_temp = []
 		key_years = list(self.dic_y_m_d.keys())
@@ -158,7 +233,6 @@ class Aggregate_Years_CSV():
 		print((year_file_names['Years']))
 		print(year_month_names)		
 		
-		
 		for item in year_file_names['Years']:
 			dest = self.dest + item
 			#print(dest)
@@ -170,6 +244,7 @@ class Aggregate_Years_CSV():
 	
 	def aggregate_yield(self, years_selected = ['']):  
 			
+		
 		I_get_csv_file_names = ut.Get_CSV_File_Names_from_Dir(years_selected)
 		
 		self.dic_y_m_d = I_get_csv_file_names.years_month_days_dic
@@ -187,6 +262,7 @@ class Aggregate_Years_CSV():
 		
 		year_month_yield_dic = {}
 		month_1_12 = self.helpers.gen_empty_year_month_yield()
+		#print(month_1_12)
 		for key_year in key_years:
 			# debug
 			#if key_year == '2014': break
@@ -236,118 +312,217 @@ class Aggregate_Years_CSV():
 
 if __name__ == '__main__':
 		
+		
+		def log_datetime(func):
+			'''Log the date and time of a function'''
+			
+			def wrapper():
+				print(f'Function: {func.__name__}\nRun on: {datetime.today().strftime("%Y-%m-%d %H:%M:%S")}')
+				print(f'{"-"*30}')
+				func()
+			return wrapper
+
+
+		@log_datetime
+		def daily_backup():
+			print('Daily backup job has finished.')
+			print()
+		
+		@log_datetime
+		def monthly_backup():
+			print('Monthly backup job has finished.')
+			print()
+		
+		
+		daily_backup()
+		monthly_backup()
+		
+		
+		
+		print(f'{"_"*30}')
+		# Python program to explain os.path.join() method
+
+		# importing os module
+
+		# Path
+		path = os.getcwd()
+
+		# Join various path components
+		print('1. ' + os.path.join(path, "User/Desktop", "file.txt"))
+
+
+		# Path
+		#path = "User/Documents"
+
+		# Join various path components
+		print('2. ' + os.path.join(path, "home", "file22.txt"))
+
+		# In above example '/home'
+		# represents an absolute path
+		# so all previous components i.e User / Documents
+		# are thrown away and joining continues
+		# from the absolute path component i.e / home.
+
+
+		# Path		
+		path = "/User"
+
+		# Join various path components
+		print('3. ' + os.path.join(path, "Downloads", "file.txt", "/home"))
+
+		# In above example '/User' and '/home'
+		# both represents an absolute path
+		# but '/home' is the last value
+		# so all previous components before '/home'
+		# will be discarded and joining will
+		# continue from '/home'
+
+		# Path
+		path = "/home"
+
+		# Join various path components
+		print('4. ' + os.path.join(path, "User/Public/", "Documents", ""))
+
+		# In above example the last
+		# path component is empty
+		# so a directory separator ('/')
+		# will be put at the end
+		# along with the concatenated value
+
+		
+		print(f'{"_"*30}')
+		'''
+		def meta_decorator(power):
+			def decorator_list(fnc):
+				print(type(fnc))
+				def inner(list_of_tuples):
+					return [(fnc(val[0], val[1])) ** power for val in list_of_tuples]
+				return inner
+			return decorator_list
+
+
+		@meta_decorator(3)
+		def add_together(a, b):
+			return a + b
+		
+
+		print(add_together([(1, 3), (3, 17), (5, 5), (6, 7)]))
+		'''
+		
+		
+		
+		
+		
+		
 		# debug
 		#print(helpers_date_handling.__init__.__doc__)
 		
 		hp = helpers()
 		agr = Aggregate_Years_CSV()
 		
-		current_year_str = hp.datum_dic['date_str']
-		current_date = {current_year_str : 'ok'}
+		recorted_date_time = ''
+		
+		current_year_str = hp.datum_dic['year_str']
+		current_date_time = hp.datum_dic['date_time_str']
+		current_date_time_record = {'Date_Time_recorted' : hp.datum_dic['date_time_str']}
+		
+		
 		
 		years_yields = ''
 		year_yield = ''
 		json_write = ''
 		# check last date record
-		content = hp.readJsonFile(agr.dir_file_date)
+		#print(agr.dir_file_date)
+		content = hp.readJsonFile(agr.dir_file_dic['last_recorded_date'])
+		
 		if content == {}:
 			print('no date file available')
 			#read all years yields
-			years_yield = agr.aggregate_yield()
+			years_month_yield_dic = agr.aggregate_yield()
+			#print(years_yield)
 		else: 
+			recorted_date_time = list(content.values())[0]
+			years_month_yield_dic = hp.readJsonFile(agr.dir_file_dic['years_month_yield_data'])
 			#print(list(content.keys())[0])
 			#print(hp.datum_dic['date_str'])
 			pass
+		
+		#print(years_month_yield_dic)		
+		
+		
+		#print('current date time: ', current_date_time)
+		#print(hp.datum_dic['date_time_str'])
+		#print('recorted date time: ', recorted_date_time)
+		hp_date_rec = helpers_date_handling(recorted_date_time)
+		time_dic = hp_date_rec.date_time_differenz(hp, hp_date_rec)
+		print(time_dic.keys())
+		print()
+		print(time_dic)
+		print()
 			
-		if list(content.keys())[0] != hp.datum_dic['date_str']:
+	
+		
+		
+		if time_dic['same_date_flag'] == False:
+			#print(list(content.values())[0])
+			#print(current_year_str)
 			year_yield = agr.aggregate_yield([hp.datum_dic['year_str']])
 					
-		years_yield = hp.readJsonFile(agr.dir_file_recorded_data)
-		
-			
 		if year_yield != '':
-			years_yield[hp.datum_dic['year_str']] = year_yield
-			pass	
-		
-		all_years_list = ['']
-		
-		
-		print(years_yield)
-		
-		
-		hp.writeJsonFile(agr.dir_file_recorded_data, years_yield)
-		hp.writeJsonFile(agr.dir_file_date, current_date) # write current date to json
+			# update current year yields from files
+			years_month_yield_dic[current_year_str] = year_yield[current_year_str]	
+		#print(years_month_yield_dic)
 		
 		
 		
+		#print(years_month_yield_dic.keys())
+		years_month_yield_aufgezeichnet = hp.readJsonFile(agr.dir_file_dic['years_month_yield_data'])
+		#print(years_month_yield_aufgezeichnet)
+		#print(hp.years_month_yield(years_month_yield_aufgezeichnet))
+		#print(hp.years_yield_abgerechnet_dic())
 		
+		years_yield_aufgezeichnet = hp.years_month_yield(years_month_yield_aufgezeichnet)
+		years_yield_abgerechnet = hp.years_yield_abgerechnet_dic()
+		print(years_yield_abgerechnet)
 		
+		# write current date to json
+		hp.writeJsonFile(agr.dir_file_dic['last_recorded_date'], current_date_time_record) 
+		# write current years month yield to json
+		hp.writeJsonFile(agr.dir_file_dic['years_month_yield_data'], years_month_yield_dic) 
 		
-		
-		#agr.aggregate_yield([current_year_str])
-		
-		
-		
-		
-		#last_date = list(hp.readJsonFile(agr.dir_file_date).keys())[0]
-		#print(last_date)	
+		# write years yield aufgezeichnet to json
+		hp.writeJsonFile(agr.dir_file_dic['years_yield_data_aufgezeichnet'], years_yield_aufgezeichnet) 
+		# write years yield abgerechnet to json
+		hp.writeJsonFile(agr.dir_file_dic['years_yield_data_abgerechnet'], years_yield_abgerechnet) 
 		
 		
 		'''
-		year_empty_dic = hp.gen_years_yield_empty()
-		#print(year_empty_dic)
-		years_yield_abgerechnet = hp.years_yield_abgerechnet_dic()
-		
-		years_month, years_yield_aufgezeichnet  = hp.years_month_yield()
-		
-		print(agr.years_aggregation[current_year_str])
-		print('----')
-		print(years_month[current_year_str])
-		
-		if agr.years_aggregation[current_year_str] == years_month[current_year_str]:
-			print(True)
-		else:
-			print(False)
-		
-		years_month[current_year_str] = agr.years_aggregation[current_year_str]
-		
-		if agr.years_aggregation['2022'] == years_month['2022']:
-			print(True)
-		else:
-			print(False)
-		
-		print('----')
-		print(years_month)
-		hp.writeJsonFile(des_file_years_yield, years_month)
-		
-		
-		
-		
-		#print(years_yield_aufgezeichnet)
-		#print('---')
-		#print(years_yield_abgerechnet)
-		x1, y1 = hp.convert_to_plot_list(years_yield_abgerechnet)
-		x2, y2 = hp.convert_to_plot_list(years_yield_aufgezeichnet)
-		#print(x1)
-		print(y1)
-		#print(x2)
-		print(y2)
-		
+		pl = hp.convert_to_bar_plot_lists(years_yield_abgerechnet, years_yield_aufgezeichnet)
+		#print(pl.keys())
+		# dict_keys(['x_bezeichnung', 'x_werte', 'y_werte_liste'])
 		
 		
 		# Declaring the figure or the plot (y, x) or (width, height)
 		plt.figure(figsize=[15, 10])
 		# Data to be plotted
-		X = np.arange(len(x1))
 		
 		# Passing the parameters to the bar function, this is the main function which creates the bar plot
 		# Using X now to align the bars side by side
-		plt.bar(X, y1, color = 'black', width = 0.25)
-		plt.bar(X + 0.25, y2, color = 'g', width = 0.25)
+		color = ['g', 'y', 'r', 'pink']
+		ind = 0
+		w = 0.
+		ws = 0.1
+		for yn in pl['y_werte_liste']:
+			plt.bar(pl['x_werte'] + (w), yn, color = color[ind], width = ws)
+			ind += 1
+			cl = len(color)
+			if ind % cl == 0:
+				ind = 0
+			w += ws
 		# Creating the legend of the bars in the plot
 		plt.legend(['Abgerechnet', 'Ermittelt'])
 		# Overiding the x axis with the country names
-		plt.xticks([i + 0.25 for i in range(len(x1))], x1)
+		plt.xticks([i + ws for i in range(len(pl['x_bezeichnung']))], pl['x_bezeichnung'])
 		# Giving the tilte for the plot
 		plt.title("Jahres Erträge Abgerechnet / Ermittelt")
 		# Namimg the x and y axis
@@ -363,7 +538,7 @@ if __name__ == '__main__':
 		
 		
 		
-		
+	
 		
 				
 		mul = lambda x: (lambda y: y * x)

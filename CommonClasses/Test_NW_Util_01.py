@@ -1,12 +1,42 @@
 
 from datetime import date, time, datetime
-import os
+import sys, os
 from pathlib import Path
+
 
 import uuid
 
-from smbprotocol.connection import Connection, Dialects
-import smbclient
+
+#from smbprotocol.connection import Connection, Dialects
+
+
+
+#from smbprotocol.connection import Connection, Dialects
+
+
+userID = 'Administrator'
+pw = '2292'
+dir_name = 'PVDataLog\\'
+server_name = '\\\pi\\'
+share_name = 'd$\\'
+file_name = '2022_03_07.CSV'
+server_ip = '192.168.178.106'
+
+s_path = server_name + share_name + dir_name
+
+
+
+
+
+dir_file = s_path + file_name
+print(s_path)
+print(dir_file)
+open(dir_file)
+
+#print(dir(smbprotocol))
+
+'''
+
 
 from smbclient import (
     link,
@@ -26,6 +56,7 @@ from smbclient import (
     scandir,
 )
 
+
 from smbclient.path import (
     isdir,
 )
@@ -33,27 +64,9 @@ from smbclient.path import (
 
 
 
-userID = 'Administrator'
-pw = '2292'
-dir_name = '\\PVDataLog'
-server_name = 'pi'
-share_name = '\\\pi\d$'
-server_ip = '192.168.178.106'
-
-dir_log_data  = share_name + dir_name
-
-
-dir = share_name + dir_name + '\\xxx'
-
-dir_file = share_name + dir_name + '\\2022_03_07.CSV'
-
-print(dir_log_data)
-print(dir)
-print(dir_file)
 
 
 
-'''
 smbclient.register_session(server_name, username=userID, password=pw)
 
 
@@ -85,7 +98,6 @@ for file_info in scandir(dir_log_data):
     else:
         print("Symlink: %s %d" % (file_info.name, file_inode))
 
-'''
 
 print('-----')
 
@@ -119,6 +131,6 @@ print('-.-.-.-')
 
 print('---')
 
-
+'''
 
 

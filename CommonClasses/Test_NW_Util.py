@@ -239,9 +239,11 @@ class SMB_client():
 
 import socket
 import os
-import paramiko
+
 
 import urllib
+import smbclient
+
 import smb
 from smb.SMBHandler import SMBHandler
 
@@ -253,7 +255,7 @@ userID = 'Administrator'
 pw = '2292'
 dir_name = 'PVDataLog'
 server_name = 'pi'
-share_name = '\\pi\d$'
+share_name = '\\\pi\d$'
 server_ip = '192.168.178.106'
 
 
@@ -277,10 +279,10 @@ print(gethostname())
 
 
 dir = share_name +'\\'+ dir_name
-#print(dir)
+print(dir)
 
 
-#smb = SMB_client(username=userID, password=pw, smb_name=server_name)
+smb = SMB_client(username=userID, password=pw, smb_name=server_name)
 
 #smb.getIP()
 #smb.connect()
@@ -314,7 +316,7 @@ dir = share_name +'\\'+ dir_name
 
 
 
-#smb = smbclient.SambaClient(server= server_name, share=dir_name, username=userID, password=pw, domain='baz')
+smb = smbclient.SambaClient(server= server_name, share=dir_name, username=userID, password=pw, domain='baz')
 #print(smb.volume)
 #print(smb.diskinfo())
 #print(smb.listdir('/'))
