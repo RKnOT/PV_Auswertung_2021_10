@@ -19,7 +19,7 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 14
+DaySelected = 31
 MonthSelected = 5
 YearSelected = 2022
 #------
@@ -132,6 +132,7 @@ class DayView():
     def dv(self, dayrecord, TeleSelected):
         
         dm =TagRecord()
+        #print(dir(dm))
         A, tpowerStr, max_ACPower= dm.getAllDayTelegramms(dayrecord, TeleSelected) 
         Pd = PlotDiagram()
         title = ('PV Tagesertrag ' + tpowerStr+ ' /  max AC Power ' + max_ACPower +' kWp')

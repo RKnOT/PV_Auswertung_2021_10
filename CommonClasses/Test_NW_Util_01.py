@@ -7,7 +7,7 @@ from pathlib import Path
 import uuid
 
 
-#from smbprotocol.connection import Connection, Dialects
+from smbprotocol.connection import Connection, Dialects
 
 
 
@@ -24,14 +24,49 @@ server_ip = '192.168.178.106'
 
 s_path = server_name + share_name + dir_name
 
+ip = server_ip
+
+import subprocess
+def ping_test (host):
+	reached = []                           #Empty list to collect reachable host
+	not_reached = []                          #Empty list to collect unreachable hosts
+	for ip in host:
+		ping_test = subprocess.call('ping %s -n 2' % ip)        #Ping host n times
+		if ping_test == 0:                    #If ping test is 0, it' reachable
+			reached.append(ip)
+		else:
+			not_reached.append(ip)                              #Else, it's not reachable
+
+	print("{} is reachable".format(reached))
+	print("{} not reachable".format(not_reached))
+
+hosts = ["192.168.178.106", 'www.google.com',]         #Hosts list
+ping_test (hosts)
 
 
+#print(os.listdir("192.168.178.106"))
+
+for i in os.environ:
+	print(i)
+#for entry in os.scandir(os.environ["LOCAL"]):
+#	print(entry)
 
 
 dir_file = s_path + file_name
 print(s_path)
-print(dir_file)
-open(dir_file)
+#print(dir_file)
+#open(dir_file)
+
+'''
+with os.scandir(s_path) as ls:
+	for item in ls:
+		print(item)
+				
+'''		
+
+
+
+
 
 #print(dir(smbprotocol))
 
