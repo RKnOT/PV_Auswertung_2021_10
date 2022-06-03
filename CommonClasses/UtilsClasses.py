@@ -5,19 +5,32 @@
 # pip install pandas
 
 import os
+import sys
 import platform
 import shutil
 import json
 
 from pathlib import Path
-
+import numpy as np
 import csv
 import re
 import datetime
 import calendar
 
+fpath = '/private/var/mobile/Containers/Shared/AppGroup/FA16265D-A93E-42FB-9932-E3CC306D50A8/File Provider Storage/Repositories/Python_Utils/Date_Time_Utils'
+sys.path.append(fpath)
+
+import date_time_util as dtu
+dt = dtu.helpers_date_utils()
+
+
+
+
+
+
 from datetime import date, time, datetime
 from scandir import scandir, walk
+
 
 
 debug_SMB_flag = False
@@ -308,7 +321,8 @@ class Get_CSV_File_Names_from_Dir():
 		def get_available_month(self, list_year):
 			list_csv_records =[]
 			list_available_month =[]
-			m_list = ['_01_', '_02_', '_03_', '_04_','_05_', '_06_', '_07_', '_08_', '_09_', '_10_', '_11_', '_12_'] 	
+			#get from date_time_util empty month_list
+			m_list = dt.get_month_list()
 			for item in m_list:
 				result = list(filter(lambda x: item in x, list_year))
 				if result != []:

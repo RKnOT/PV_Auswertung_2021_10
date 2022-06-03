@@ -28,13 +28,12 @@ fpath = '/private/var/mobile/Containers/Shared/AppGroup/FA16265D-A93E-42FB-9932-
 sys.path.append(fpath)
 
 import date_time_util as dtu
+dt = dtu.helpers_date_utils()
 import PV_Helper_Utils as hpu
 import Color_Map as cm
 
 #print(sys.path[0])
 
-
-	
 		
 #--- debug helpers_date_handling ----------
 
@@ -47,36 +46,16 @@ import Color_Map as cm
 
 #___________________________________________
 
-def compare_date_now_and_recorted():
-	flag_same_date = False
-	hp = hpu.helpers()
-	dt_recorted = list(hp.readJsonFile(agr.dir_file_dic['last_recorded_date']).values())
-	#print(dt_recorted)
-	dt_rc = dtu.helpers_date_handling(dt_recorted[0])
-	dt_now = dtu.helpers_date_handling()	
-	
-	time_dic = dt_rc.date_time_differenz(dt_rc, dt_now)
-	
-	if time_dic['same_year_month_day_flag']:
-			flag_same_date = True 
-	print(dt_rc.datum_dic['date_date'])
-	print(dt_now.datum_dic['date_date'])
-	print(time_dic['same_date_flag']) #== False:
-	
-	
+		
 if __name__ == '__main__':
 		
-		Show_Charts = 1
+		Show_Charts = 10
 		
 		# debug
 		#print(helpers_date_handling.__init__.__doc__)
 		
 		hp = hpu.helpers()
 		agr = hpu.Aggregate_Years_CSV()
-		
-		compare_date_now_and_recorted()
-		
-		
 		
 		#print(agr.dir_file_dic)
 		recorted_date_time = ''
@@ -105,47 +84,49 @@ if __name__ == '__main__':
 			#print(hp.datum_dic)
 			#print(hp.datum_dic['date_str'])
 			pass
+		#print(years_month_yield_dic)		
+		#print('current date time: ', current_date_time)
+		#print(hp.datum_dic['date_time_str'])
+		#print('recorted date time: ', recorted_date_time)
+		
+		
+		r_date_time = list(content.values())[0]	
+		same_date_flag = dt.compare_date_now_and_recorted(r_date_time)
+		if same_date_flag == False:
+			#print(list(content.values())[0])
+			#print(current_year_str)
+			year_yield = agr.aggregate_yield([hp.datum_dic['year_str']])
+			pass		
+		if year_yield != '':
+			# update current year yields from files
+			years_month_yield_dic[current_year_str] = year_yield[current_year_str]	
+		#print(years_month_yield_dic)
+		#print(years_month_yield_dic.keys())
+		years_month_yield_aufgezeichnet = hp.readJsonFile(agr.dir_file_dic['years_month_yield_data'])
+		#print(years_month_yield_aufgezeichnet)
+		#print(hp.years_month_yield(years_month_yield_aufgezeichnet))
+		#print(hp.years_yield_abgerechnet_dic())
+		
+		years_yield_aufgezeichnet = hp.years_month_yield(years_month_yield_aufgezeichnet)
+
+		years_yield_abgerechnet = hp.years_yield_abgerechnet_dic()
+		#print(years_yield_abgerechnet)
+		
+		# !!! write current date to json !!!
+		hp.writeJsonFile(agr.dir_file_dic['last_recorded_date'], current_date_time_record) 
+			
+		# write current years month yield to json
+		hp.writeJsonFile(agr.dir_file_dic['years_month_yield_data'], years_month_yield_dic) 
+		
+		# write years yield aufgezeichnet to json
+		hp.writeJsonFile(agr.dir_file_dic['years_yield_data_aufgezeichnet'], years_yield_aufgezeichnet) 
+		# write years yield abgerechnet to json
+		hp.writeJsonFile(agr.dir_file_dic['years_yield_data_abgerechnet'], years_yield_abgerechnet) 
+		
 		
 		#------------------------	
 		
 		if Show_Charts == 1 or Show_Charts == 10:
-			
-			#print(years_month_yield_dic)		
-			#print('current date time: ', current_date_time)
-			#print(hp.datum_dic['date_time_str'])
-			#print('recorted date time: ', recorted_date_time)
-			hp_date_rec = dtu.helpers_date_handling(recorted_date_time)
-			time_dic = hp_date_rec.date_time_differenz(hp, hp_date_rec)
-			if time_dic['same_date_flag'] == False:
-				#print(list(content.values())[0])
-				#print(current_year_str)
-				year_yield = agr.aggregate_yield([hp.datum_dic['year_str']])
-					
-			if year_yield != '':
-				# update current year yields from files
-				years_month_yield_dic[current_year_str] = year_yield[current_year_str]	
-			#print(years_month_yield_dic)
-			#print(years_month_yield_dic.keys())
-			years_month_yield_aufgezeichnet = hp.readJsonFile(agr.dir_file_dic['years_month_yield_data'])
-			#print(years_month_yield_aufgezeichnet)
-			#print(hp.years_month_yield(years_month_yield_aufgezeichnet))
-			#print(hp.years_yield_abgerechnet_dic())
-		
-			years_yield_aufgezeichnet = hp.years_month_yield(years_month_yield_aufgezeichnet)
-
-			years_yield_abgerechnet = hp.years_yield_abgerechnet_dic()
-			#print(years_yield_abgerechnet)
-		
-			# write current date to json
-			#--------------------lölölölölölöl
-			hp.writeJsonFile(agr.dir_file_dic['last_recorded_date'], current_date_time_record) 
-			# write current years month yield to json
-			hp.writeJsonFile(agr.dir_file_dic['years_month_yield_data'], years_month_yield_dic) 
-		
-			# write years yield aufgezeichnet to json
-			hp.writeJsonFile(agr.dir_file_dic['years_yield_data_aufgezeichnet'], years_yield_aufgezeichnet) 
-			# write years yield abgerechnet to json
-			hp.writeJsonFile(agr.dir_file_dic['years_yield_data_abgerechnet'], years_yield_abgerechnet) 
 		
 			# plot graph
 			pl = hp.convert_to_bar_plot_lists(years_yield_abgerechnet, years_yield_aufgezeichnet)
@@ -185,6 +166,8 @@ if __name__ == '__main__':
 #------------------------
 		if Show_Charts == 2 or Show_Charts == 10:
 			
+			
+			
 			yma = hpu.Get_years_month_average()
 			years = list(yma.y_m_av_dic.keys())
 			pos = np.arange(len(years))
@@ -207,6 +190,11 @@ if __name__ == '__main__':
 			plt.figure(figsize=[15, 10])
 			
 			pos = np.arange(len(l_plot_month))
+			
+			month_names = dt.month_name_list
+			#print(dt.monat_name_list)
+			#print(month_names)
+			
 			w = 0.
 			ws = 0.1
 			#print(pos)
@@ -219,8 +207,8 @@ if __name__ == '__main__':
 				ci +=2
 				if ci % len(color) == 0:
 					ci = 0
-			plt.xticks(pos, l_plot_month)
-			#plt.xticks(rotation = 45)
+			plt.xticks(pos, month_names)
+			plt.xticks(rotation = 45)
 			#plt.setp(xaxis.get_majorticklabels(), ha='right')
 			plt.xlabel('Monat', fontsize=16)
 			plt.ylabel('Durchschnittlicher Tages-Ertrag in kWh', fontsize=16)
