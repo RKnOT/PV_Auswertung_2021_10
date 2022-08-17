@@ -390,6 +390,11 @@ class Get_CSV_File_Names():
             os.chdir(cwd)
             self.cwd_dir = os.getcwd()
 #---------------------------
+import smbclient
+
+smb = smbclient.SambaClient(server="pi", share="MYSHARE",
+                                username='Administrator', password='2292', domain='baz')
+
 
 #test
 '''
