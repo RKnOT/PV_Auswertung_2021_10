@@ -29,9 +29,9 @@ def doit(stop_event, arg, c, max_count = 25):
 
 
 #-----------Debug Einstellungen-------
-debug = False
+debug = True
 # files kopieren
-file_copy_flag = True # True > files werden kopiert // False > files werden nicht kopiert
+file_copy_flag = False # True > files werden kopiert // False > files werden nicht kopiert
 #-------------------------------------
 
 

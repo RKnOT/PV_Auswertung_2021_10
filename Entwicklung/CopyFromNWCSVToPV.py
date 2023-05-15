@@ -9,7 +9,7 @@ import concurrent.futures as cf
 import time
 #from time import sleep 
 
-debug = False
+debug = True
 
 def get_r_l(func):
     wert = func()
@@ -17,11 +17,11 @@ def get_r_l(func):
     
 start = time.perf_counter()
 
-with cf.ThreadPoolExecutor() as executor:
-    remote = executor.submit(get_r_l, ut.GetNWCSV_File_Names)
+#with cf.ThreadPoolExecutor() as executor:
+ #   remote = executor.submit(get_r_l, ut.GetNWCSV_File_Names)
 
-with cf.ThreadPoolExecutor() as executor:
-        local = executor.submit(get_r_l, ut.Get_CSV_File_Names)
+#with cf.ThreadPoolExecutor() as executor:
+ #       local = executor.submit(get_r_l, ut.Get_CSV_File_Names)
 
 loc = local.result()
         #print(CSV_local.stat)
