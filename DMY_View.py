@@ -19,7 +19,7 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 14
+DaySelected = 31
 MonthSelected = 7
 YearSelected = 2023
 #------
