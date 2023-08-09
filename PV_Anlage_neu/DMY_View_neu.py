@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
 import os
-
+import csv
 import sys
+import json
+import pathlib
+
+
+from datetime import datetime
+'''
 import math
 from datetime import date, datetime, timedelta
 import calendar
@@ -11,22 +17,209 @@ from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 from matplotlib.dates import DateFormatter
-
+'''
 cwd = os.getcwd()
+
+#print(cwd)
+csv_dir = cwd + '/PVDataLog'
 sys.path.insert(1, cwd + '/CommonClasses')
-from CommonClasses.DataModel import TagUtil as TagRecord
-from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
-from helper_classes import check_CSV
+#from CommonClasses.DataModel import TagUtil as TagRecord
+#from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
+
+#import Dir_File_Handling
+#from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 7
+DaySelected = 3
 MonthSelected = 8
 YearSelected = 2023
 #------
 TeleSelected = 0
 #--------------------
 
+#--------------
+#csv_obj = GetCSV_Names(cwd + '/PVDataLog', '2023_07', 'csv')
+class CSV_file_handling():
+	def __init__(self, csv_dir_path, ext = 'CSV'):
+		self.Ext = ext
+		self.cwd = os.getcwd()
+		self.Path_csv = self.cwd + '/' + csv_dir_path
+		self.List_csv_files = []
+		self.list_csv_file_content = []
+		self.dic_days = {}
+		
+		self.get_all_csv_files()
+		
+	def get_all_csv_files(self):
+		os.chdir(self.Path_csv)
+		for fn in os.listdir('.'):
+			ext_file = pathlib.Path(self.Path_csv + '/' + fn).suffix
+			if ext_file == '.' + self.Ext:
+				self.List_csv_files.append(fn)
+		os.chdir(self.cwd)
+		return
+	
+	def get_csv_data(self, f_name):
+		os.chdir(self.Path_csv)
+		list_day_items = [[], []]
+		with open(f_name) as csv_file:
+			reader = csv.reader(csv_file)
+			line_count = 0
+			day_count = 0;
+			for row in reader: # get item header
+				if line_count == 0:
+					str_header = " , " . join(row)
+					self.l_header = str_header.split(';')
+					self.l_header.pop(0)
+					line_count += 1
+				else:						# get item content
+						str_items = ' , ' . join(row)
+						items = str_items.split(';')
+						items.pop(0)
+						self.list_csv_file_content.append(items)
+						if items[0][:10] not in list_day_items[0]:
+							list_day_items[0].append(items[0][:10])
+							list_day_items[1].append(line_count-1)
+						line_count += 1
+			for day_element in list_day_items[0]: 
+				start_index = list_day_items[1][day_count]
+				
+				if day_count >= len(list_day_items[0])-1:
+					stop_index = line_count - 1
+				else:
+					stop_index = list_day_items[1][day_count+1]
+				self.dic_days[str(day_count)] = [day_element, start_index, stop_index]
+				day_count +=1
+			#print(self.dic_days)
+			os.chdir(self.cwd)
+			
+	def get_dic_header(self, l_header):
+		i = 0
+		temp_str = '{'
+		for item in l_header:
+			temp_str += '"' + str(i) + '" : ' + '"' + item + '",'
+			i +=1
+		temp_str = temp_str[:-1]	
+		temp_str += '}'
+		#print(temp_str)
+		self.h_dict = json.loads(temp_str)
+		
+#-----class end----------		
+class get_days_month_year_views():
+		def __init__(self, sub_dir = 'PVDataLog', ex= 'csv'):
+			all_csv = CSV_file_handling(sub_dir, ex)
+			list_months_days = []				
+			#read all csv's
+			for item in all_csv.List_csv_files:
+			
+				#list_months_days.append(all_csv.days_view)				
+				all_csv.get_csv_data(item)
+				list_months_days.append()
+				all_csv.get_dic_header(all_csv.l_header)
+				tele = csv_content_handling(all_csv.list_csv_file_content, all_csv.dic_days)			
+			
+			print(list_months_days)
+#-------------		
+class csv_content_handling():
+	def __init__(self, list_csv_content, dic_days):
+		self.list_csv_content = list_csv_content
+		self.dic_days = dic_days
+		self.days_view = []
+		self.month_view =[]
+		self.get_days_month_view()
+	
+	def get_days_month_view(self):
+		for i in range(0, len(self.dic_days)):
+			start_index = self.dic_days[str(i)][1]
+			stop_index = self.dic_days[str(i)][2]		
+			record_values = self.convert_content_items_to_values(self.list_csv_content[0])
+			#print(record_values)
+			list_day_temp = [0] * len(record_values[1:])
+			list_month_temp = [0] * len(record_values[1:])
+			# get days view	
+			for j in range(start_index, stop_index):
+				record_values = self.convert_content_items_to_values(self.list_csv_content[j])
+				rv_date = record_values[0].date()
+				record_values  = record_values[1:] 
+				for index, integer in enumerate(record_values):
+   				 list_day_temp[index] += integer
+			list_day_temp.insert(0, rv_date)
+			self.days_view.append(list_day_temp)
+		# get month view
+		self.month_view =self.add_list_items_values(self.days_view)
+		print(self.month_view)
+			
+	def add_list_items_values(self, list_values):
+		list_temp = [0] * len(list_values[0][1:])
+		
+		for item in list_values:
+			date = item[0]
+			
+			for index, value in enumerate(item[1:]):
+				list_temp[index] += value
+		list_temp.insert(0, date)
+		return list_temp	
+									
+	def convert_content_items_to_values(self, data_set):
+		date_format = '%Y-%m-%d %H:%M:%S'
+		flag_first_item = True
+		list_data_set_values = []
+		for item in data_set:
+			if flag_first_item:
+				item = item + ':00'
+				date_obj = datetime.strptime(item, date_format)
+				list_data_set_values.append(date_obj)
+			else:
+				list_data_set_values.append(int(item))
+			flag_first_item = False
+		return list_data_set_values
+			
+#----- end class
+		
+				
+get_days_month_year_views()
+
+
+#print(all_csv.l_header[0])
+
+#print(all_csv.list_csv_file_content[0])
+#print()
+
 '''
+start_index = all_csv.dic_days['29'][1]
+stop_index = all_csv.dic_days['29'][2]
+for i in range(start_index, stop_index):
+	print(all_csv.list_csv_file_content[i])
+'''
+	
+		
+#tele = csv_content_handling(all_csv.list_csv_file_content, all_csv.dic_days)			
+
+
+#print(all_csv.h_dict)
+#for item in tele.days_view:
+	#print(item)
+					
+	
+#print(all_csv.dic_days)
+
+#print(all_csv.list_csv_file_content[all_csv.list_day_items[1][1]-1])
+
+
+#print(type(all_csv.h_dict))
+#print(len(all_csv.h_dict))
+
+
+
+#for i in all_csv.h_dict:
+	#print(all_csv.h_dict[str(i)])
+	
+	
+	
+
+'''
+
+
  TO DO: 
     ok. CHECK RANGE DAY / MONTH / YEAR 
 
@@ -36,7 +229,7 @@ print(p1)
 os.chdir('..')
 p1 = os.getcwd()
 print(p1)
-'''
+
 DF3 ='%d. %B %Y'
 F3 = '{:06.3f}'
 DF_h_m_s = mdates.DateFormatter('%H.%M.%S')
@@ -237,7 +430,7 @@ class PlotDiagram():
         
         
         
-        '''
+       
         
         import numpy as np
 
@@ -253,7 +446,7 @@ class PlotDiagram():
         plt.xticks(x, month_xticks)
         plt.plot(x, y)
         plt.show()      
-        '''
+        
 
 if __name__ == '__main__':
         c = check_CSV(DaySelected, MonthSelected, YearSelected)
@@ -270,6 +463,6 @@ if __name__ == '__main__':
            YearView(c.csv)
            pass
 
-    
+'''    
 
 
