@@ -19,9 +19,9 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 7
-MonthSelected = 8
-YearSelected = 2023
+DaySelected = 30
+MonthSelected = 4
+YearSelected = 2024
 #------
 TeleSelected = 0
 #--------------------
