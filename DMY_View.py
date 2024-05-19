@@ -19,8 +19,8 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 30
-MonthSelected = 4
+DaySelected = 19
+MonthSelected = 5
 YearSelected = 2024
 #------
 TeleSelected = 0
@@ -31,12 +31,15 @@ TeleSelected = 0
     ok. CHECK RANGE DAY / MONTH / YEAR 
 
 
+
+""
 p1 = os.getcwd()
 print(p1)
 os.chdir('..')
 p1 = os.getcwd()
 print(p1)
 '''
+
 DF3 ='%d. %B %Y'
 F3 = '{:06.3f}'
 DF_h_m_s = mdates.DateFormatter('%H.%M.%S')
