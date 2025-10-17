@@ -19,9 +19,9 @@ from CommonClasses.DataModel import GetCSV_File_Names as GetCSV_Names
 from helper_classes import check_CSV
 
 #-------Eingabe-----------
-DaySelected = 20
-MonthSelected = 11
-YearSelected = 2024
+DaySelected = 16
+MonthSelected = 10
+YearSelected = 2025
 #------
 TeleSelected = 0
 #--------------------
@@ -102,7 +102,7 @@ class MonthView():
         monthYield1Str = F3.format(monthYield1)
         monthYieldStr = F3.format(monthYield)
         
-        c0 = 'Tageserträge'+ ' im '+ A[0][0].strftime('%B %Y')
+        c0 = 'Tageserträge'+ ' im '+ A[0][0].strftime('%B %Y')
         c1 = "Monatsertrag:  "+ monthYieldStr + " kWh"
 
         if monthRange[1] != A[0][-1].day:
@@ -247,7 +247,7 @@ class PlotDiagram():
         x = np.arange(0, 12)
         y = np.arange(20, 32)
         
-        month_xticks = ['Jan','Feb','März','April','Mai','Juni','Juli', 'Aug', 'Sep','Okt', 'Nov', 'Dez']
+        month_xticks = ['Jan','Feb','März','April','Mai','Juni','Juli', 'Aug', 'Sep','Okt', 'Nov', 'Dez']
         
         
         print(x)
@@ -274,5 +274,4 @@ if __name__ == '__main__':
            pass
 
     
-
 
